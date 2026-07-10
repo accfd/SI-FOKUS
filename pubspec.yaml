@@ -48,6 +48,8 @@ dependencies:
   flutter_svg: ^2.0.10+1
   syncfusion_flutter_pdfviewer: ^26.1.41
   file_picker: ^8.0.3
+  pdf: ^3.11.1
+  printing: ^5.13.3
 
 dev_dependencies:
   flutter_test:
