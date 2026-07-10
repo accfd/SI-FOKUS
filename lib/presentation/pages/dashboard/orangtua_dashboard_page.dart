@@ -418,13 +418,13 @@ class _OrangTuaDashboardView extends StatelessWidget {
         icon: Icons.psychology_rounded,
         title: 'Rekomendasi\nPendampingan',
         color: const Color(0xFFFF9800),
-        onTap: () => _showComingSoon(context, 'Rekomendasi Pendampingan'),
+        onTap: () => context.go('/dashboard/orangtua/parent-recommendation'),
       ),
       _ShortcutItem(
         icon: Icons.emoji_events_rounded,
         title: 'Potensi\n& Bakat',
         color: const Color(0xFF26A69A),
-        onTap: () => _showComingSoon(context, 'Potensi & Bakat'),
+        onTap: () => context.go('/dashboard/orangtua/talent-report'),
       ),
     ];
 

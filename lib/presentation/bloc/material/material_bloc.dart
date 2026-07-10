@@ -55,7 +55,7 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialBlocState> {
             isPublished: false,
           );
 
-          await materialRepository.saveMaterialMetadata(material);
+          await materialRepository.saveMaterialMetadata(material, fileBytes: event.fileBytes);
           add(UploadFinished(material));
         } catch (e) {
           add(UploadFailed(e.toString()));

@@ -26,6 +26,37 @@ class LearningReportPage extends StatelessWidget {
   static const Color _passedColor = Color(0xFF43A047);
   static const Color _failedColor = Color(0xFFE53935);
 
+  String _formatDateIndonesian(DateTime date, {bool shortMonth = false}) {
+    final months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    final shortMonths = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    
+    final day = date.day.toString().padLeft(2, '0');
+    final monthStr = shortMonth ? shortMonths[date.month - 1] : months[date.month - 1];
+    final year = date.year;
+    
+    return '$day $monthStr $year';
+  }
+
+  String _safeFormatDate(DateTime date, String pattern) {
+    if (pattern.contains('MMMM')) {
+      return _formatDateIndonesian(date, shortMonth: false);
+    } else if (pattern.contains('MMM')) {
+      return _formatDateIndonesian(date, shortMonth: true);
+    } else {
+      try {
+        return DateFormat(pattern).format(date);
+      } catch (_) {
+        return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year.toString().substring(2)}';
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -371,7 +402,7 @@ class LearningReportPage extends StatelessWidget {
 
     return Column(
       children: state.quizHistory.map((quiz) {
-        final dateFormatted = DateFormat('dd MMM yyyy', 'id').format(quiz.date);
+        final dateFormatted = _safeFormatDate(quiz.date, 'dd MMM yyyy');
         final typeLabel = quiz.type == 'quiz_utama' ? 'Kuis Utama' : 'Quick Check';
         final typeColor = quiz.type == 'quiz_utama' ? Colors.deepPurple : Colors.blue.shade700;
 
@@ -531,7 +562,7 @@ class LearningReportPage extends StatelessWidget {
     LearningReportLoaded state,
   ) async {
     final pdf = pw.Document();
-    final dateNow = DateFormat('dd MMMM yyyy', 'id').format(DateTime.now());
+    final dateNow = _safeFormatDate(DateTime.now(), 'dd MMMM yyyy');
 
     pdf.addPage(
       pw.MultiPage(
@@ -631,7 +662,7 @@ class LearningReportPage extends StatelessWidget {
                 '${q.score}/${q.totalQuestions}',
                 '${q.percentage.toStringAsFixed(0)}%',
                 q.passed ? 'LULUS' : 'GAGAL',
-                DateFormat('dd/MM/yy').format(q.date),
+                _safeFormatDate(q.date, 'dd/MM/yy'),
               ];
             }).toList(),
           ),

@@ -14,7 +14,7 @@ abstract class MaterialRepository {
     required List<int> fileBytes,
   });
 
-  Future<void> saveMaterialMetadata(MaterialModel material);
+  Future<void> saveMaterialMetadata(MaterialModel material, {List<int>? fileBytes});
   
   Future<String> getDownloadUrl(String path);
 }

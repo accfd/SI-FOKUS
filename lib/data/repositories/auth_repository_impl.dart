@@ -97,9 +97,56 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       if (isMockMode) {
-        final allUsers = await MockDb.getAll('users');
+        var allUsers = await MockDb.getAll('users');
+        final codeUpper = parentAccessCode.trim().toUpperCase();
+        
+        // Data siswa bawaan (default mock students)
+        final codeToMockStudent = {
+          'ADTYA1': UserModel(
+            uid: 'std_rem_1',
+            name: 'Aditya Pratama',
+            email: 'aditya@siswa.com',
+            role: 'siswa',
+            parentAccessCode: 'ADTYA1',
+            createdAt: DateTime.now(),
+          ),
+          'BUDI02': UserModel(
+            uid: 'std_rem_2',
+            name: 'Budi Santoso',
+            email: 'budi@siswa.com',
+            role: 'siswa',
+            parentAccessCode: 'BUDI02',
+            createdAt: DateTime.now(),
+          ),
+          'CITRA3': UserModel(
+            uid: 'std_rem_3',
+            name: 'Citra Lestari',
+            email: 'citra@siswa.com',
+            role: 'siswa',
+            parentAccessCode: 'CITRA3',
+            createdAt: DateTime.now(),
+          ),
+          'DEWI04': UserModel(
+            uid: 'std_rem_4',
+            name: 'Dewi Handayani',
+            email: 'dewi@siswa.com',
+            role: 'siswa',
+            parentAccessCode: 'DEWI04',
+            createdAt: DateTime.now(),
+          ),
+        };
+
+        // Jika siswa belum ada di database lokal namun menggunakan salah satu kode bawaan,
+        // daftarkan secara otomatis agar orang tua dapat mendaftar tanpa hambatan
+        final hasMatch = allUsers.any((u) => u['role'] == 'siswa' && u['parentAccessCode'] == codeUpper);
+        if (!hasMatch && codeToMockStudent.containsKey(codeUpper)) {
+          final student = codeToMockStudent[codeUpper]!;
+          await MockDb.save('users', student.uid, student.toJson());
+          allUsers = await MockDb.getAll('users'); // refresh daftar user
+        }
+
         final student = allUsers.firstWhere(
-          (u) => u['role'] == 'siswa' && u['parentAccessCode'] == parentAccessCode.trim().toUpperCase(),
+          (u) => u['role'] == 'siswa' && u['parentAccessCode'] == codeUpper,
           orElse: () => throw Exception('Kode akses tidak valid. Siswa tidak ditemukan.'),
         );
         linkedStudentUid = student['uid'] as String;

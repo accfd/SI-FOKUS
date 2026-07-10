@@ -17,6 +17,8 @@ import '../../presentation/pages/dashboard/siswa_dashboard_page.dart';
 import '../../presentation/pages/dashboard/orangtua_dashboard_page.dart';
 import '../../presentation/pages/orangtua/learning_report_page.dart';
 import '../../presentation/pages/orangtua/learning_health_page.dart';
+import '../../presentation/pages/orangtua/parent_recommendation_page.dart';
+import '../../presentation/pages/orangtua/talent_report_page.dart';
 
 class AppRouter {
   AppRouter._();
@@ -157,6 +159,16 @@ class AppRouter {
             path: 'learning-health',
             name: 'learning_health',
             builder: (context, state) => const LearningHealthPage(),
+          ),
+          GoRoute(
+            path: 'parent-recommendation',
+            name: 'parent_recommendation',
+            builder: (context, state) => const ParentRecommendationPage(),
+          ),
+          GoRoute(
+            path: 'talent-report',
+            name: 'talent_report',
+            builder: (context, state) => const TalentReportPage(),
           ),
         ],
       ),

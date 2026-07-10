@@ -17,11 +17,11 @@ class MockDb {
     // Hapus jika ID sudah ada untuk mencegah duplikasi
     list.removeWhere((item) {
       final decoded = json.decode(item) as Map<String, dynamic>;
-      final matchId = decoded['uid'] ?? 
-                      decoded['classId'] ?? 
-                      decoded['materialId'] ?? 
+      final matchId = decoded['interventionId'] ??
                       decoded['assessmentId'] ?? 
-                      decoded['interventionId'] ??
+                      decoded['materialId'] ?? 
+                      decoded['classId'] ?? 
+                      decoded['uid'] ?? 
                       decoded['id'];
       return matchId == id;
     });
@@ -35,11 +35,11 @@ class MockDb {
     final list = _prefs!.getStringList(collection) ?? [];
     for (final item in list) {
       final decoded = json.decode(item) as Map<String, dynamic>;
-      final matchId = decoded['uid'] ?? 
-                      decoded['classId'] ?? 
-                      decoded['materialId'] ?? 
+      final matchId = decoded['interventionId'] ??
                       decoded['assessmentId'] ?? 
-                      decoded['interventionId'] ??
+                      decoded['materialId'] ?? 
+                      decoded['classId'] ?? 
+                      decoded['uid'] ?? 
                       decoded['id'];
       if (matchId == id) {
         return decoded;
@@ -59,11 +59,11 @@ class MockDb {
     final list = _prefs!.getStringList(collection) ?? [];
     list.removeWhere((item) {
       final decoded = json.decode(item) as Map<String, dynamic>;
-      final matchId = decoded['uid'] ?? 
-                      decoded['classId'] ?? 
-                      decoded['materialId'] ?? 
+      final matchId = decoded['interventionId'] ??
                       decoded['assessmentId'] ?? 
-                      decoded['interventionId'] ??
+                      decoded['materialId'] ?? 
+                      decoded['classId'] ?? 
+                      decoded['uid'] ?? 
                       decoded['id'];
       return matchId == id;
     });
