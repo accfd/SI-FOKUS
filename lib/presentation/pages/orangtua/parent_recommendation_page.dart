@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../bloc/parent_recommendation/parent_recommendation_bloc.dart';
 import '../../bloc/parent_recommendation/parent_recommendation_event.dart';
 import '../../bloc/parent_recommendation/parent_recommendation_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../widgets/shared_ui_kit.dart';
 
 class ParentRecommendationPage extends StatelessWidget {
   const ParentRecommendationPage({super.key});
@@ -23,29 +25,19 @@ class _ParentRecommendationView extends StatelessWidget {
   const _ParentRecommendationView();
 
   // ── Palette Warna Menenangkan ──
-  static const Color _primary = Color(0xFF2E7D6F);
-  static const Color _primaryDark = Color(0xFF1B5E50);
-  static const Color _surface = Color(0xFFF5FAF8);
-  static const Color _cardBg = Colors.white;
-  static const Color _textPrimary = Color(0xFF1A3C34);
-  static const Color _textSecondary = Color(0xFF5F7B74);
+  static const Color _primary = AppColors.primaryLight;
+  static const Color _primaryDark = AppColors.secondaryLight;
+  static const Color _surface = AppColors.backgroundLight;
+  static const Color _cardBg = AppColors.cardLight;
+  static const Color _textPrimary = AppColors.textPrimaryLight;
+  static const Color _textSecondary = AppColors.textSecondaryLight;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _surface,
-      appBar: AppBar(
-        title: Text(
-          'Rekomendasi Belajar',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: _primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      appBar: const SharedAppBar(
+        title: 'Rekomendasi Belajar',
       ),
       body: BlocBuilder<ParentRecommendationBloc, ParentRecommendationState>(
         builder: (context, state) {
@@ -78,13 +70,11 @@ class _ParentRecommendationView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Info banner
-          Container(
+          SharedCard(
             padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: _primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _primary.withOpacity(0.15)),
-            ),
+            borderRadius: 16,
+            color: _primary.withOpacity(0.08),
+            border: Border.all(color: _primary.withOpacity(0.15)),
             child: Row(
               children: [
                 const Icon(Icons.tips_and_updates_rounded, color: _primary, size: 28),
@@ -141,19 +131,11 @@ class _ParentRecommendationView extends StatelessWidget {
     final catColor = _getCategoryColor(recommendation.category);
     final catIcon = _getCategoryIcon(recommendation.iconType);
 
-    return Container(
+    return SharedCard(
+      color: _cardBg,
       margin: const EdgeInsets.only(bottom: 18),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      padding: EdgeInsets.zero,
+      borderRadius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

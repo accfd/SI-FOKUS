@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "148820992800",
+    "project_id": "si-fokus",
+    "storage_bucket": "si-fokus.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:148820992800:android:2da334c91408741d74ed45",
+        "android_client_info": {
+          "package_name": "com.sifokus.si_fokus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwzYZGie0y8PLhwJwRyuDSKiWL1i6w0ck"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

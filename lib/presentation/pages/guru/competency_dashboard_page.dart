@@ -1,10 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/competency_model.dart';
 import '../../bloc/competency/competency_bloc.dart';
 import '../../bloc/competency/competency_event.dart';
 import '../../bloc/competency/competency_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class CompetencyDashboardPage extends StatefulWidget {
   final String classId;
@@ -30,8 +33,9 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dasbor Kompetensi Siswa (AI)'),
+      backgroundColor: AppColors.backgroundLight,
+      appBar: const SharedAppBar(
+        title: 'Dasbor Kompetensi Siswa (AI)',
       ),
       body: BlocBuilder<CompetencyBloc, CompetencyState>(
         builder: (context, state) {
@@ -93,19 +97,11 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
   }
 
   Widget _buildHeaderBanner(ThemeData theme) {
-    return Container(
+    return SharedCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withValues(alpha: 0.7),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
+      borderRadius: 20,
+      color: AppColors.primaryLight,
+      border: Border.all(color: AppColors.primaryLight, width: 0),
       child: Row(
         children: [
           Container(
@@ -170,14 +166,10 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
   }
 
   Widget _buildClassAverageCard(ThemeData theme, double average) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-      ),
+    return SharedCard(
+      borderRadius: 20,
       child: Container(
-        height: 320,
+        height: 280,
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -247,14 +239,10 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
   Widget _buildCompetencyRadarCard(ThemeData theme, Map<String, double> mastery) {
     final entries = mastery.entries.toList();
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-      ),
+    return SharedCard(
+      borderRadius: 20,
       child: Container(
-        height: 320,
+        height: 280,
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -270,8 +258,8 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
                 RadarChartData(
                   dataSets: [
                     RadarDataSet(
-                      fillColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-                      borderColor: theme.colorScheme.primary,
+                      fillColor: AppColors.primaryLight.withValues(alpha: 0.15),
+                      borderColor: AppColors.primaryLight,
                       entryRadius: 4,
                       borderWidth: 2,
                       dataEntries: entries.map((e) => RadarEntry(value: e.value * 100)).toList(),
@@ -302,24 +290,18 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
   }
 
   Widget _buildMistakeTopicsCard(ThemeData theme, List<MistakeTopicModel> mistakeTopics) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    return SharedCard(
+      borderRadius: 20,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
             Row(
               children: [
-                Icon(Icons.report_problem_rounded, color: theme.colorScheme.error),
+                const Icon(Icons.report_problem_rounded, color: AppColors.error),
                 const SizedBox(width: 8),
                 Text(
                   'Materi dengan Tingkat Kesalahan Tertinggi',
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimaryLight),
                 ),
               ],
             ),
@@ -444,34 +426,29 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildRecommendationCard(ThemeData theme, List<MistakeTopicModel> topics) {
     final highestTopic = topics.isNotEmpty ? topics.first.topic : '-';
 
-    return Card(
-      elevation: 0,
-      color: theme.colorScheme.secondary.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: theme.colorScheme.secondary.withValues(alpha: 0.15)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
+    return SharedCard(
+      borderRadius: 20,
+      color: AppColors.primaryLight.withValues(alpha: 0.05),
+      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15)),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.lightbulb_outline_rounded, color: theme.colorScheme.secondary),
+                const Icon(Icons.lightbulb_outline_rounded, color: AppColors.primaryLight),
                 const SizedBox(width: 8),
                 Text(
                   'Rekomendasi Pembelajaran AI',
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  style: GoogleFonts.outfit(
                     fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.secondary,
+                    color: AppColors.primaryLight,
+                    fontSize: 16,
                   ),
                 ),
               ],
@@ -483,7 +460,6 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }

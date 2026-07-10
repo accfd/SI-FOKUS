@@ -1,11 +1,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/talent/talent_bloc.dart';
 import '../../bloc/talent/talent_event.dart';
 import '../../bloc/talent/talent_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class TalentRecommendationPage extends StatefulWidget {
   const TalentRecommendationPage({super.key});
@@ -36,8 +39,9 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
     final amberText = const HSLColor.fromAHSL(1.0, 40, 0.90, 0.25).toColor();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rekomendasi Bakat AI'),
+      backgroundColor: AppColors.backgroundLight,
+      appBar: const SharedAppBar(
+        title: 'Rekomendasi Bakat AI',
       ),
       body: BlocBuilder<TalentBloc, TalentState>(
         builder: (context, state) {
@@ -81,17 +85,15 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Header Info
-                  Container(
+                  SharedCard(
                     padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: amberLight,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: amberColor.withValues(alpha: 0.3), width: 1.5),
-                    ),
+                    borderRadius: 16,
+                    color: AppColors.primaryLight.withValues(alpha: 0.05),
+                    border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.stars_rounded, color: amberColor, size: 28),
+                        const Icon(Icons.stars_rounded, color: AppColors.primaryLight, size: 28),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
@@ -99,18 +101,18 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                             children: [
                               Text(
                                 'Analisis Bakat AI Terdeteksi',
-                                style: TextStyle(
+                                style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
-                                  color: amberText,
+                                  color: AppColors.textPrimaryLight,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'AI SI-FOKUS menganalisis tingkat konsistensi kuis, fokus membaca modul (scroll velocity), keaktifan, dan durasi belajar untuk merekomendasikan siswa pada ajang kompetisi nasional.',
-                                style: TextStyle(
+                                style: GoogleFonts.outfit(
                                   fontSize: 13,
-                                  color: amberText.withValues(alpha: 0.85),
+                                  color: AppColors.textSecondaryLight,
                                   height: 1.4,
                                 ),
                               ),
@@ -131,13 +133,9 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                       final rec = recs[index];
                       final scorePercent = (rec.confidenceScore * 100).toInt();
 
-                      return Card(
+                      return SharedCard(
                         margin: const EdgeInsets.only(bottom: 20),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          side: BorderSide(color: Colors.grey.shade200),
-                        ),
+                        borderRadius: 24,
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Column(
@@ -152,7 +150,7 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                                       children: [
                                         Text(
                                           rec.studentName,
-                                          style: const TextStyle(
+                                          style: GoogleFonts.outfit(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
                                           ),
@@ -162,16 +160,16 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                           decoration: BoxDecoration(
-                                            color: amberLight,
+                                            color: AppColors.primaryLight.withValues(alpha: 0.08),
                                             borderRadius: BorderRadius.circular(30),
-                                            border: Border.all(color: amberColor.withValues(alpha: 0.2)),
+                                            border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.2)),
                                           ),
                                           child: Text(
                                             'Rekomendasi: ${rec.recommendedField.toUpperCase()}',
-                                            style: TextStyle(
+                                            style: GoogleFonts.outfit(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
-                                              color: amberText,
+                                              color: AppColors.primaryLight,
                                             ),
                                           ),
                                         ),
@@ -189,17 +187,17 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                                           painter: SemiCircularGaugePainter(
                                             score: rec.confidenceScore,
                                             trackColor: Colors.grey.shade200,
-                                            valueColor: amberColor,
+                                            valueColor: AppColors.primaryLight,
                                           ),
                                         ),
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
                                         '$scorePercent% Cocok',
-                                        style: TextStyle(
+                                        style: GoogleFonts.outfit(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 12,
-                                          color: amberText,
+                                          color: AppColors.primaryLight,
                                         ),
                                       ),
                                     ],

@@ -23,6 +23,12 @@ class MaterialRepositoryImpl implements MaterialRepository {
   final FirebaseFirestore? _firestore;
   final FirebaseStorage? _storage;
 
+  static final Map<String, List<int>> _mockFileBytes = {};
+
+  static List<int>? getCachedBytes(String materialId) {
+    return _mockFileBytes[materialId];
+  }
+
   MaterialRepositoryImpl({
     FirebaseFirestore? firestore,
     FirebaseStorage? storage,
@@ -85,7 +91,7 @@ class MaterialRepositoryImpl implements MaterialRepository {
             
             await MockDb.save('materials', material.materialId, updatedMaterial.toJson());
             
-            // Generate Quick Check
+            // Generate Quick Check (3 Soal Biologi Riil)
             final mockQuickCheck = AssessmentModel(
               assessmentId: "qc_${material.materialId}",
               materialId: material.materialId,
@@ -93,40 +99,134 @@ class MaterialRepositoryImpl implements MaterialRepository {
               type: "quick_check",
               questions: [
                 QuestionModel(
-                  questionId: "q1",
-                  questionText: "Berdasarkan materi '${material.title}', apa tujuan utama dari topik pembelajaran ini?",
-                  options: [
-                    "Menguji pemahaman konsep fundamental secara cepat",
-                    "Mengerjakan soal ujian akhir semester",
-                    "Membuat rangkuman dokumen fisik",
-                    "Menghafal seluruh materi tanpa memahaminya"
-                  ],
-                  correctAnswerIndex: 0,
+                  questionId: "q_qc_1",
+                  questionText: "Hingga kini penyakit AIDS belum ada obatnya. Penelitian dilakukan oleh para ahli untuk mengetahui aktivitas Virus HIV pada tingkat organisasi kehidupan yaitu...",
+                  options: const ["A. Molekul", "B. Sel", "C. Jaringan", "D. Organ", "E. Sistem organ"],
+                  correctAnswerIndex: 1,
+                  type: "pilihan_ganda",
+                  topicTag: "Organisasi Kehidupan",
+                ),
+                QuestionModel(
+                  questionId: "q_qc_2",
+                  questionText: "Pembuatan film terkenal Jurassic Park menceritakan kehidupan hewan purba. Cabang ilmu biologi yang paling berperan dalam memodelkan hewan purba tersebut adalah...",
+                  options: const ["A. Evolusi", "B. Botani", "C. Zoologi", "D. Palaeontologi", "E. Anatomi"],
+                  correctAnswerIndex: 3,
+                  type: "pilihan_ganda",
+                  topicTag: "Cabang Biologi",
+                ),
+                QuestionModel(
+                  questionId: "q_qc_3",
+                  questionText: "Seseorang yang akan menjalani transplantasi organ hati perlu memahami struktur fungsi hati. Studi tersebut dipelajari pada tingkat organisasi...",
+                  options: const ["A. Sel", "B. Jaringan", "C. Organ", "D. Sistem organ", "E. Individu"],
+                  correctAnswerIndex: 2,
+                  type: "pilihan_ganda",
+                  topicTag: "Organisasi Kehidupan",
                 ),
               ],
               isPublished: true,
             );
             await MockDb.save('assessments', mockQuickCheck.assessmentId, mockQuickCheck.toJson());
 
-            // Generate Kuis Utama
+            // Generate Kuis Utama (10 Soal Biologi/Aljabar Riil SNBT)
             final mockQuizUtama = AssessmentModel(
               assessmentId: "quiz_${material.materialId}",
               materialId: material.materialId,
               classId: material.classId,
               type: "quiz_utama",
-              questions: List.generate(10, (index) {
-                return QuestionModel(
-                  questionId: "quiz_q_${index + 1}",
-                  questionText: "Soal Kuis Utama #${index + 1}: Manakah pilihan yang paling merepresentasikan pemahaman mendalam tentang '${material.title}'?",
-                  options: [
-                    "Jawaban opsi A (Konsep terstruktur)",
-                    "Jawaban opsi B (Penjelasan teoritis dasar)",
-                    "Jawaban opsi C (Aplikasi penyelesaian masalah)",
-                    "Jawaban opsi D (Metode analisis lanjutan)"
+              questions: [
+                QuestionModel(
+                  questionId: "q_qu_1",
+                  questionText: "Berikut merupakan salah satu manfaat penerapan biologi di bidang peternakan secara modern adalah...",
+                  options: const [
+                    "A. Memperbanyak dengan teknik kultur jaringan",
+                    "B. Membuat antibodi monoklonal",
+                    "C. Membuat vaksin pencegah penyakit virus SARS",
+                    "D. Terapi gen transgenik menghasilkan susu sapi lebih berkualitas",
+                    "E. Menghasilkan insulin buatan"
                   ],
-                  correctAnswerIndex: index % 4,
-                );
-              }),
+                  correctAnswerIndex: 3,
+                  type: "pilihan_ganda",
+                  topicTag: "Manfaat Biologi",
+                ),
+                QuestionModel(
+                  questionId: "q_qu_2",
+                  questionText: "Sekelompok peneliti melakukan pengamatan terhadap perilaku sekumpulan harimau Sumatera (Panthera tigris sumatrae). Tingkat organisasi kehidupan yang diamati adalah...",
+                  options: const ["A. Ekosistem", "B. Komunitas", "C. Populasi", "D. Individu", "E. Bioma"],
+                  correctAnswerIndex: 2,
+                  type: "pilihan_ganda",
+                  topicTag: "Organisasi Kehidupan",
+                ),
+                QuestionModel(
+                  questionId: "q_qu_3",
+                  questionText: "Seorang peneliti mengamati lingkungan X dan menemukan bahwa banyak bayi terlahir cacat akibat kekurangan gizi serta polusi logam berat. Bidang studi biologi yang mempelajari cacat perkembangan embrio ini adalah...",
+                  options: const ["A. Parasitologi", "B. Ginekologi", "C. Teratologi", "D. Genetika", "E. Fisiologi"],
+                  correctAnswerIndex: 2,
+                  type: "pilihan_ganda",
+                  topicTag: "Cabang Biologi",
+                ),
+                QuestionModel(
+                  questionId: "q_qu_4",
+                  questionText: "Dalam suatu langkah metode ilmiah, eksperimen atau percobaan dilakukan secara terkontrol untuk menguji...",
+                  options: const ["A. Pengumpulan data", "B. Rumusan masalah", "C. Latar belakang", "D. Kesimpulan", "E. Hipotesis"],
+                  correctAnswerIndex: 4,
+                  type: "pilihan_ganda",
+                  topicTag: "Metode Ilmiah",
+                ),
+                QuestionModel(
+                  questionId: "q_qu_5",
+                  questionText: "Perilaku yang benar, aman, dan menjaga keselamatan kerja saat berada di dalam laboratorium biologi adalah...",
+                  options: const ["A. Membawa bekal makanan", "B. Mengenakan pakaian ketat", "C. Bersikap serius dan tekun", "D. Bersikap gembira dan bercanda", "E. Menggunakan seragam sekolah ketat"],
+                  correctAnswerIndex: 2,
+                  type: "pilihan_ganda",
+                  topicTag: "Keselamatan Kerja",
+                ),
+                QuestionModel(
+                  questionId: "q_qu_6",
+                  questionText: "Jika Anda memasuki laboratorium dan melihat simbol botol pecah mengeluarkan cairan korosif, berarti zat tersebut bersifat...",
+                  options: const ["A. Korosif", "B. Beracun", "C. Radioaktif", "D. Mudah meledak", "E. Mudah terbakar"],
+                  correctAnswerIndex: 0,
+                  type: "pilihan_ganda",
+                  topicTag: "Keselamatan Kerja",
+                ),
+                // Soal Majemuk Kompleks
+                QuestionModel(
+                  questionId: "q_qu_7",
+                  questionText: "Tentukan Benar (B) atau Salah (S) untuk pernyataan keselamatan kerja berikut:\n1. Membuang sisa limbah asam pekat langsung ke wastafel diperbolehkan.\n2. Selalu gunakan jas lab kancing lengkap saat berada di laboratorium.",
+                  options: const [],
+                  correctAnswerIndex: 0,
+                  type: "majemuk_kompleks",
+                  correctAnswers: const [0, 1],
+                  topicTag: "Keselamatan Kerja",
+                ),
+                QuestionModel(
+                  questionId: "q_qu_8",
+                  questionText: "Tentukan Benar (B) atau Salah (S) untuk pernyataan tingkat organisasi kehidupan berikut:\n1. Kumpulan sel sejenis yang memiliki bentuk dan fungsi sama disebut jaringan.\n2. Tingkatan organisasi kehidupan tertinggi di biosfer adalah individu tunggal.",
+                  options: const [],
+                  correctAnswerIndex: 0,
+                  type: "majemuk_kompleks",
+                  correctAnswers: const [1, 0],
+                  topicTag: "Organisasi Kehidupan",
+                ),
+                // Soal Isian Singkat
+                QuestionModel(
+                  questionId: "q_qu_9",
+                  questionText: "Langkah pertama dalam metode ilmiah setelah mengamati fenomena alam secara seksama adalah merumuskan...",
+                  options: const [],
+                  correctAnswerIndex: 0,
+                  type: "isian_singkat",
+                  correctAnswerText: "masalah",
+                  topicTag: "Metode Ilmiah",
+                ),
+                QuestionModel(
+                  questionId: "q_qu_10",
+                  questionText: "Dugaan awal atau jawaban sementara yang diajukan peneliti terhadap rumusan masalah penelitian disebut...",
+                  options: const [],
+                  correctAnswerIndex: 0,
+                  type: "isian_singkat",
+                  correctAnswerText: "hipotesis",
+                  topicTag: "Metode Ilmiah",
+                ),
+              ],
               isPublished: true,
             );
             await MockDb.save('assessments', mockQuizUtama.assessmentId, mockQuizUtama.toJson());
@@ -192,6 +292,9 @@ class MaterialRepositoryImpl implements MaterialRepository {
   @override
   Future<void> saveMaterialMetadata(MaterialModel material, {List<int>? fileBytes}) async {
     if (isMockMode) {
+      if (fileBytes != null) {
+        _mockFileBytes[material.materialId] = fileBytes;
+      }
       // Simpan materi kosong (summary = null) terlebih dahulu
       await MockDb.save('materials', material.materialId, material.toJson());
       
@@ -291,37 +394,28 @@ class MaterialRepositoryImpl implements MaterialRepository {
           type: "quick_check",
           questions: [
             QuestionModel(
-              questionId: "q1",
-              questionText: "Berdasarkan materi '${material.title}', apa tujuan utama dari topik pembelajaran ini?",
-              options: [
-                "Menguji pemahaman konsep fundamental secara cepat",
-                "Mengerjakan soal ujian akhir semester",
-                "Membuat rangkuman dokumen fisik",
-                "Menghafal seluruh materi tanpa memahaminya"
-              ],
-              correctAnswerIndex: 0,
+              questionId: "q_qc_1",
+              questionText: "Hingga kini penyakit AIDS belum ada obatnya. Penelitian dilakukan oleh para ahli untuk mengetahui aktivitas Virus HIV pada tingkat organisasi kehidupan yaitu...",
+              options: const ["A. Molekul", "B. Sel", "C. Jaringan", "D. Organ", "E. Sistem organ"],
+              correctAnswerIndex: 1,
+              type: "pilihan_ganda",
+              topicTag: "Organisasi Kehidupan",
             ),
             QuestionModel(
-              questionId: "q2",
-              questionText: "Manakah di bawah ini yang merupakan komponen penting yang dibahas dalam modul?",
-              options: [
-                "Struktur teoretis dan pemecahan kasus secara logis",
-                "Metode penulisan cepat tanpa analisis",
-                "Kumpulan rumus fisika tingkat lanjut",
-                "Hukum Newton tentang gerak benda"
-              ],
-              correctAnswerIndex: 0,
+              questionId: "q_qc_2",
+              questionText: "Pembuatan film terkenal Jurassic Park menceritakan kehidupan hewan purba. Cabang ilmu biologi yang paling berperan dalam memodelkan hewan purba tersebut adalah...",
+              options: const ["A. Evolusi", "B. Botani", "C. Zoologi", "D. Palaeontologi", "E. Anatomi"],
+              correctAnswerIndex: 3,
+              type: "pilihan_ganda",
+              topicTag: "Cabang Biologi",
             ),
             QuestionModel(
-              questionId: "q3",
-              questionText: "Bagaimana cara menyimpulkan hasil evaluasi dari topik '${material.title}'?",
-              options: [
-                "Menganalisis hasil pengerjaan kuis dan kestabilan fokus belajar",
-                "Hanya melihat durasi waktu membaca tanpa memperhatikan fokus",
-                "Menyalin seluruh isi materi ke buku catatan",
-                "Mengganti tab browser sesering mungkin saat belajar"
-              ],
-              correctAnswerIndex: 0,
+              questionId: "q_qc_3",
+              questionText: "Seseorang yang akan menjalani transplantasi organ hati perlu memahami struktur fungsi hati. Studi tersebut dipelajari pada tingkat organisasi...",
+              options: const ["A. Sel", "B. Jaringan", "C. Organ", "D. Sistem organ", "E. Individu"],
+              correctAnswerIndex: 2,
+              type: "pilihan_ganda",
+              topicTag: "Organisasi Kehidupan",
             ),
           ],
           isPublished: true,
@@ -333,19 +427,100 @@ class MaterialRepositoryImpl implements MaterialRepository {
           materialId: material.materialId,
           classId: material.classId,
           type: "quiz_utama",
-          questions: List.generate(10, (index) {
-            return QuestionModel(
-              questionId: "quiz_q_${index + 1}",
-              questionText: "Soal Kuis Utama #${index + 1}: Manakah pilihan yang paling merepresentasikan pemahaman mendalam tentang '${material.title}'?",
-              options: [
-                "Jawaban opsi A (Konsep terstruktur)",
-                "Jawaban opsi B (Penjelasan teoritis dasar)",
-                "Jawaban opsi C (Aplikasi penyelesaian masalah)",
-                "Jawaban opsi D (Metode analisis lanjutan)"
+          questions: [
+            QuestionModel(
+              questionId: "q_qu_1",
+              questionText: "Berikut merupakan salah satu manfaat penerapan biologi di bidang peternakan secara modern adalah...",
+              options: const [
+                "A. Memperbanyak dengan teknik kultur jaringan",
+                "B. Membuat antibodi monoklonal",
+                "C. Membuat vaksin pencegah penyakit virus SARS",
+                "D. Terapi gen transgenik menghasilkan susu sapi lebih berkualitas",
+                "E. Menghasilkan insulin buatan"
               ],
-              correctAnswerIndex: index % 4,
-            );
-          }),
+              correctAnswerIndex: 3,
+              type: "pilihan_ganda",
+              topicTag: "Manfaat Biologi",
+            ),
+            QuestionModel(
+              questionId: "q_qu_2",
+              questionText: "Sekelompok peneliti melakukan pengamatan terhadap perilaku sekumpulan harimau Sumatera (Panthera tigris sumatrae). Tingkat organisasi kehidupan yang diamati adalah...",
+              options: const ["A. Ekosistem", "B. Komunitas", "C. Populasi", "D. Individu", "E. Bioma"],
+              correctAnswerIndex: 2,
+              type: "pilihan_ganda",
+              topicTag: "Organisasi Kehidupan",
+            ),
+            QuestionModel(
+              questionId: "q_qu_3",
+              questionText: "Seorang peneliti mengamati lingkungan X dan menemukan bahwa banyak bayi terlahir cacat akibat kekurangan gizi serta polusi logam berat. Bidang studi biologi yang mempelajari cacat perkembangan embrio ini adalah...",
+              options: const ["A. Parasitologi", "B. Ginekologi", "C. Teratologi", "D. Genetika", "E. Fisiologi"],
+              correctAnswerIndex: 2,
+              type: "pilihan_ganda",
+              topicTag: "Cabang Biologi",
+            ),
+            QuestionModel(
+              questionId: "q_qu_4",
+              questionText: "Dalam suatu langkah metode ilmiah, eksperimen atau percobaan dilakukan secara terkontrol untuk menguji...",
+              options: const ["A. Pengumpulan data", "B. Rumusan masalah", "C. Latar belakang", "D. Kesimpulan", "E. Hipotesis"],
+              correctAnswerIndex: 4,
+              type: "pilihan_ganda",
+              topicTag: "Metode Ilmiah",
+            ),
+            QuestionModel(
+              questionId: "q_qu_5",
+              questionText: "Perilaku yang benar, aman, dan menjaga keselamatan kerja saat berada di dalam laboratorium biologi adalah...",
+              options: const ["A. Membawa bekal makanan", "B. Mengenakan pakaian ketat", "C. Bersikap serius dan tekun", "D. Bersikap gembira dan bercanda", "E. Menggunakan seragam sekolah ketat"],
+              correctAnswerIndex: 2,
+              type: "pilihan_ganda",
+              topicTag: "Keselamatan Kerja",
+            ),
+            QuestionModel(
+              questionId: "q_qu_6",
+              questionText: "Jika Anda memasuki laboratorium dan melihat simbol botol pecah mengeluarkan cairan korosif, berarti zat tersebut bersifat...",
+              options: const ["A. Korosif", "B. Beracun", "C. Radioaktif", "D. Mudah meledak", "E. Mudah terbakar"],
+              correctAnswerIndex: 0,
+              type: "pilihan_ganda",
+              topicTag: "Keselamatan Kerja",
+            ),
+            // Soal Majemuk Kompleks
+            QuestionModel(
+              questionId: "q_qu_7",
+              questionText: "Tentukan Benar (B) atau Salah (S) untuk pernyataan keselamatan kerja berikut:\n1. Membuang sisa limbah asam pekat langsung ke wastafel diperbolehkan.\n2. Selalu gunakan jas lab kancing lengkap saat berada di laboratorium.",
+              options: const [],
+              correctAnswerIndex: 0,
+              type: "majemuk_kompleks",
+              correctAnswers: const [0, 1],
+              topicTag: "Keselamatan Kerja",
+            ),
+            QuestionModel(
+              questionId: "q_qu_8",
+              questionText: "Tentukan Benar (B) atau Salah (S) untuk pernyataan tingkat organisasi kehidupan berikut:\n1. Kumpulan sel sejenis yang memiliki bentuk dan fungsi sama disebut jaringan.\n2. Tingkatan organisasi kehidupan tertinggi di biosfer adalah individu tunggal.",
+              options: const [],
+              correctAnswerIndex: 0,
+              type: "majemuk_kompleks",
+              correctAnswers: const [1, 0],
+              topicTag: "Organisasi Kehidupan",
+            ),
+            // Soal Isian Singkat
+            QuestionModel(
+              questionId: "q_qu_9",
+              questionText: "Langkah pertama dalam metode ilmiah setelah mengamati fenomena alam secara seksama adalah merumuskan...",
+              options: const [],
+              correctAnswerIndex: 0,
+              type: "isian_singkat",
+              correctAnswerText: "masalah",
+              topicTag: "Metode Ilmiah",
+            ),
+            QuestionModel(
+              questionId: "q_qu_10",
+              questionText: "Dugaan awal atau jawaban sementara yang diajukan peneliti terhadap rumusan masalah penelitian disebut...",
+              options: const [],
+              correctAnswerIndex: 0,
+              type: "isian_singkat",
+              correctAnswerText: "hipotesis",
+              topicTag: "Metode Ilmiah",
+            ),
+          ],
           isPublished: true,
         );
         await MockDb.save('assessments', mockQuizUtama.assessmentId, mockQuizUtama.toJson());

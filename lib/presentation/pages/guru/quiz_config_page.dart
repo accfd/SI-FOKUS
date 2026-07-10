@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/assessment_model.dart';
 import '../../bloc/assessment/assessment_bloc.dart';
 import '../../bloc/assessment/assessment_event.dart';
 import '../../bloc/assessment/assessment_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class QuizConfigPage extends StatefulWidget {
   final String classId;
@@ -155,8 +158,9 @@ class _QuizConfigPageState extends State<QuizConfigPage> {
     final titleLabel = widget.type == 'quick_check' ? 'Jadwal Quick Check' : 'Jadwal Kuis Utama';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(titleLabel),
+      backgroundColor: AppColors.backgroundLight,
+      appBar: SharedAppBar(
+        title: titleLabel,
       ),
       body: BlocConsumer<AssessmentBloc, AssessmentState>(
         listener: (context, state) {
@@ -182,27 +186,30 @@ class _QuizConfigPageState extends State<QuizConfigPage> {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange.shade600),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Kuis Belum Terdaftar',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Harap generate kuis aljabar/soal terlebih dahulu di halaman edit sebelum melakukan pengaturan jadwal.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
-                    ),
-                    const SizedBox(height: 24),
-                    OutlinedButton(
-                      onPressed: () => context.pop(),
-                      child: const Text('Kembali'),
-                    ),
-                  ],
+                child: SharedCard(
+                  borderRadius: 20,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, size: 64, color: AppColors.accentLight),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Kuis Belum Terdaftar',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimaryLight),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Harap generate kuis aljabar/soal terlebih dahulu di halaman edit sebelum melakukan pengaturan jadwal.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(color: AppColors.textSecondaryLight, fontSize: 13),
+                      ),
+                      const SizedBox(height: 24),
+                      OutlinedButton(
+                        onPressed: () => context.pop(),
+                        child: Text('Kembali', style: GoogleFonts.outfit()),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -217,24 +224,22 @@ class _QuizConfigPageState extends State<QuizConfigPage> {
                 children: [
                   Text(
                     'Pengaturan Akses Kuis',
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 20, color: AppColors.textPrimaryLight),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Atur jadwal pengerjaan kuis pintar siswa serta status publikasinya.',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textSecondaryLight),
                   ),
                   const SizedBox(height: 32),
 
                   // 1. Start Date Time Input
-                  TextFormField(
+                  SharedInput(
                     controller: _startDateController,
                     readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Waktu Pembukaan Kuis',
-                      prefixIcon: Icon(Icons.date_range_rounded),
-                      hintText: 'Pilih Tanggal & Jam',
-                    ),
+                    labelText: 'Waktu Pembukaan Kuis',
+                    prefixIcon: Icons.date_range_rounded,
+                    hintText: 'Pilih Tanggal & Jam',
                     onTap: () => _pickDateTime(true),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -246,14 +251,12 @@ class _QuizConfigPageState extends State<QuizConfigPage> {
                   const SizedBox(height: 20),
 
                   // 2. End Date Time Input
-                  TextFormField(
+                  SharedInput(
                     controller: _endDateController,
                     readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Tenggat Waktu Penutupan Kuis',
-                      prefixIcon: Icon(Icons.event_busy_rounded),
-                      hintText: 'Pilih Tanggal & Jam',
-                    ),
+                    labelText: 'Tenggat Waktu Penutupan Kuis',
+                    prefixIcon: Icons.event_busy_rounded,
+                    hintText: 'Pilih Tanggal & Jam',
                     onTap: () => _pickDateTime(false),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -265,13 +268,11 @@ class _QuizConfigPageState extends State<QuizConfigPage> {
                   const SizedBox(height: 20),
 
                   // 3. Duration Input
-                  TextFormField(
+                  SharedInput(
                     controller: _durationController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Durasi Pengerjaan (Menit)',
-                      prefixIcon: Icon(Icons.timer_rounded),
-                    ),
+                    labelText: 'Durasi Pengerjaan (Menit)',
+                    prefixIcon: Icons.timer_rounded,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Durasi pengerjaan wajib diisi';
@@ -286,15 +287,13 @@ class _QuizConfigPageState extends State<QuizConfigPage> {
                   const SizedBox(height: 24),
 
                   // 4. Publish Toggle Switch
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      side: BorderSide(color: Colors.grey.shade200),
-                    ),
+                  SharedCard(
+                    borderRadius: 14,
+                    padding: EdgeInsets.zero,
                     child: SwitchListTile(
-                      title: const Text('Publikasikan Kuis', style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Jika aktif, siswa kelas dapat melihat dan mengerjakan kuis ini.'),
+                      title: Text('Publikasikan Kuis', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                      subtitle: Text('Jika aktif, siswa kelas dapat melihat dan mengerjakan kuis ini.', style: GoogleFonts.outfit(fontSize: 12)),
+                      activeColor: AppColors.primaryLight,
                       value: _isPublished,
                       onChanged: (val) {
                         setState(() {
@@ -306,12 +305,9 @@ class _QuizConfigPageState extends State<QuizConfigPage> {
                   const SizedBox(height: 40),
 
                   // Save Button
-                  ElevatedButton(
+                  SharedButton(
                     onPressed: _onSave,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
-                    ),
-                    child: const Text('Simpan Pengaturan Kuis'),
+                    text: 'Simpan Pengaturan Kuis',
                   ),
                 ],
               ),

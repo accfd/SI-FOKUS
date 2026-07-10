@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../bloc/learning_health/learning_health_bloc.dart';
 import '../../bloc/learning_health/learning_health_event.dart';
 import '../../bloc/learning_health/learning_health_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../widgets/shared_ui_kit.dart';
 
 class LearningHealthPage extends StatelessWidget {
   const LearningHealthPage({super.key});
@@ -24,33 +26,23 @@ class _LearningHealthView extends StatelessWidget {
   const _LearningHealthView();
 
   // ── Palette Warna Kebugaran Belajar Menenangkan ──
-  static const Color _primary = Color(0xFF2E7D6F);
-  static const Color _primaryDark = Color(0xFF1B5E50);
-  static const Color _surface = Color(0xFFF5FAF8);
-  static const Color _cardBg = Colors.white;
-  static const Color _textPrimary = Color(0xFF1A3C34);
-  static const Color _textSecondary = Color(0xFF5F7B74);
+  static const Color _primary = AppColors.primaryLight;
+  static const Color _primaryDark = AppColors.secondaryLight;
+  static const Color _surface = AppColors.backgroundLight;
+  static const Color _cardBg = AppColors.cardLight;
+  static const Color _textPrimary = AppColors.textPrimaryLight;
+  static const Color _textSecondary = AppColors.textSecondaryLight;
 
-  static const Color _greenHealth = Color(0xFF43A047);
-  static const Color _yellowHealth = Color(0xFFFFB300);
-  static const Color _redHealth = Color(0xFFE53935);
+  static const Color _greenHealth = AppColors.success;
+  static const Color _yellowHealth = AppColors.warning;
+  static const Color _redHealth = AppColors.error;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _surface,
-      appBar: AppBar(
-        title: Text(
-          'Kesehatan Belajar',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: _primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      appBar: const SharedAppBar(
+        title: 'Kesehatan Belajar',
       ),
       body: BlocBuilder<LearningHealthBloc, LearningHealthState>(
         builder: (context, state) {
@@ -86,20 +78,11 @@ class _LearningHealthView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── 1. RINGKASAN GAUGE KESEHATAN UTAMA ──
-          Container(
+          SharedCard(
+            color: _cardBg,
             width: double.infinity,
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: _cardBg,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
+            borderRadius: 24,
             child: Column(
               children: [
                 Text(
@@ -198,20 +181,11 @@ class _LearningHealthView extends StatelessWidget {
   Widget _buildFitnessCard(HealthIndicator indicator) {
     final statusColor = _getStatusColor(indicator.status);
 
-    return Container(
+    return SharedCard(
+      color: _cardBg,
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

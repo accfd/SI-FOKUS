@@ -6,6 +6,8 @@ import '../../../../data/models/user_model.dart';
 import '../../bloc/gamification/gamification_bloc.dart';
 import '../../bloc/gamification/gamification_event.dart';
 import '../../bloc/gamification/gamification_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({Key? key}) : super(key: key);
@@ -24,16 +26,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.indigo.shade50,
-      appBar: AppBar(
-        title: Text(
-          'Leaderboard Kelas',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 22),
-        ),
-        backgroundColor: Colors.indigo.shade900,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
+      backgroundColor: AppColors.backgroundLight,
+      appBar: const SharedAppBar(
+        title: 'Leaderboard Kelas',
       ),
       body: BlocBuilder<GamificationBloc, GamificationState>(
         builder: (context, state) {
@@ -76,9 +71,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         // Podium Area
         Container(
           padding: const EdgeInsets.only(top: 32, bottom: 24, left: 16, right: 16),
-          decoration: BoxDecoration(
-            color: Colors.indigo.shade900,
-            borderRadius: const BorderRadius.only(
+          decoration: const BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(32),
               bottomRight: Radius.circular(32),
             ),
@@ -104,28 +99,19 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             itemBuilder: (context, index) {
               final student = others[index];
               final rank = index + 4;
-              return Container(
+              return SharedCard(
                 margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
+                padding: EdgeInsets.zero,
+                borderRadius: 16,
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   leading: CircleAvatar(
-                    backgroundColor: Colors.indigo.shade50,
+                    backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
                     child: Text(
                       '#$rank',
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.bold,
-                        color: Colors.indigo.shade900,
+                        color: AppColors.primaryLight,
                       ),
                     ),
                   ),
@@ -153,7 +139,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
-                          color: Colors.indigo.shade600,
+                          color: AppColors.primaryLight,
                         ),
                       ),
                       Text(
@@ -161,7 +147,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
-                          color: Colors.indigo.shade400,
+                          color: AppColors.primaryLight.withValues(alpha: 0.7),
                         ),
                       ),
                     ],

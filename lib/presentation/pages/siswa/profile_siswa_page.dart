@@ -10,6 +10,8 @@ import '../../bloc/learning_profile/learning_profile_event.dart';
 import '../../bloc/learning_profile/learning_profile_state.dart';
 import '../../../../data/models/digital_learning_profile_model.dart';
 import 'package:intl/intl.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class ProfileSiswaPage extends StatefulWidget {
   const ProfileSiswaPage({Key? key}) : super(key: key);
@@ -37,15 +39,9 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: Text(
-          'Digital Learning Profile',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: Colors.white),
-        ),
-        backgroundColor: Colors.indigo.shade900,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      backgroundColor: AppColors.backgroundLight,
+      appBar: const SharedAppBar(
+        title: 'Digital Learning Profile',
       ),
       body: BlocBuilder<LearningProfileBloc, LearningProfileState>(
         builder: (context, state) {
@@ -80,7 +76,7 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.indigo.shade900,
+              color: AppColors.textPrimaryLight,
             ),
           ),
           const SizedBox(height: 16),
@@ -93,7 +89,7 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.indigo.shade900,
+              color: AppColors.textPrimaryLight,
             ),
           ),
           const SizedBox(height: 16),
@@ -106,7 +102,7 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.indigo.shade900,
+              color: AppColors.textPrimaryLight,
             ),
           ),
           const SizedBox(height: 16),
@@ -139,22 +135,22 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
               title: 'Paling Dikuasai',
               value: profile.strongestMaterial,
               icon: Icons.star_rounded,
-              color: Colors.amber.shade600,
-              bgColor: Colors.amber.shade50,
+              color: AppColors.primaryLight,
+              bgColor: AppColors.primaryLight.withValues(alpha: 0.08),
             ),
             _buildStatCard(
               title: 'Paling Sulit',
               value: profile.weakestMaterial,
               icon: Icons.warning_rounded,
-              color: Colors.red.shade500,
-              bgColor: Colors.red.shade50,
+              color: AppColors.error,
+              bgColor: AppColors.error.withValues(alpha: 0.08),
             ),
             _buildStatCard(
               title: 'Media Efektif',
               value: profile.mostEffectiveMedia,
               icon: Icons.play_circle_filled_rounded,
-              color: Colors.blue.shade600,
-              bgColor: Colors.blue.shade50,
+              color: AppColors.accentLight,
+              bgColor: AppColors.accentLight.withValues(alpha: 0.08),
             ),
           ],
         );
@@ -227,20 +223,12 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
       spots.add(FlSpot(i.toDouble(), data[i].focusScore));
     }
 
-    return Container(
-      height: 300,
-      padding: const EdgeInsets.only(right: 24, left: 16, top: 24, bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return SharedCard(
+      borderRadius: 16,
+      child: SizedBox(
+        height: 250,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16, left: 0, top: 16, bottom: 0),
       child: LineChart(
         LineChartData(
           gridData: FlGridData(
@@ -303,7 +291,7 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
               spots: spots,
               isCurved: true,
               curveSmoothness: 0.35,
-              color: Colors.indigo,
+              color: AppColors.primaryLight,
               barWidth: 4,
               isStrokeCapRound: true,
               dotData: FlDotData(
@@ -313,38 +301,32 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
                     radius: 4,
                     color: Colors.white,
                     strokeWidth: 2,
-                    strokeColor: Colors.indigo,
+                    strokeColor: AppColors.primaryLight,
                   );
                 },
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: Colors.indigo.withOpacity(0.1),
+                color: AppColors.primaryLight.withValues(alpha: 0.1),
               ),
             ),
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildConsistencyBarChart(List<ConsistencyDataPoint> data) {
     if (data.isEmpty) return const SizedBox();
 
-    return Container(
-      height: 300,
-      padding: const EdgeInsets.only(right: 24, left: 16, top: 24, bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return SharedCard(
+      borderRadius: 16,
+      child: SizedBox(
+        height: 250,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16, left: 0, top: 16, bottom: 0),
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
@@ -352,7 +334,7 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (group) => Colors.indigo.shade900,
+              getTooltipColor: (group) => AppColors.primaryLight,
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 return BarTooltipItem(
                   '${rod.toY} Jam',
@@ -376,7 +358,7 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Colors.indigo.shade800,
+                          color: AppColors.primaryLight,
                         ),
                       ),
                     );
@@ -418,7 +400,7 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
               barRods: [
                 BarChartRodData(
                   toY: data[index].hoursStudied,
-                  color: Colors.purple.shade400,
+                  color: AppColors.primaryLight,
                   width: 20,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(6),
@@ -427,7 +409,7 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
                     toY: 10,
-                    color: Colors.purple.shade50,
+                    color: AppColors.primaryLight.withValues(alpha: 0.08),
                   ),
                 ),
               ],
@@ -435,6 +417,8 @@ class _ProfileSiswaPageState extends State<ProfileSiswaPage> {
           }),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }

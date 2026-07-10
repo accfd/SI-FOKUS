@@ -11,6 +11,8 @@ class MaterialModel {
   final DateTime createdAt;
   final bool isPublished;
   final List<LearningResourceModel> learningResources;
+  final String? aiProcessingStatus; // 'pending' | 'processing' | 'done' | 'error'
+  final List<String> topics; // Daftar topik utama yang dideteksi AI
 
   MaterialModel({
     required this.materialId,
@@ -22,6 +24,8 @@ class MaterialModel {
     required this.createdAt,
     this.isPublished = false,
     this.learningResources = const [],
+    this.aiProcessingStatus,
+    this.topics = const [],
   });
 
   MaterialModel copyWith({
@@ -34,6 +38,8 @@ class MaterialModel {
     DateTime? createdAt,
     bool? isPublished,
     List<LearningResourceModel>? learningResources,
+    String? aiProcessingStatus,
+    List<String>? topics,
   }) {
     return MaterialModel(
       materialId: materialId ?? this.materialId,
@@ -45,6 +51,8 @@ class MaterialModel {
       createdAt: createdAt ?? this.createdAt,
       isPublished: isPublished ?? this.isPublished,
       learningResources: learningResources ?? this.learningResources,
+      aiProcessingStatus: aiProcessingStatus ?? this.aiProcessingStatus,
+      topics: topics ?? this.topics,
     );
   }
 
@@ -64,6 +72,10 @@ class MaterialModel {
         .map((e) => LearningResourceModel.fromJson(e as Map<String, dynamic>))
         .toList();
 
+    // Parse topics array
+    final rawTopics = json['topics'] as List<dynamic>? ?? [];
+    final topics = rawTopics.map((e) => e.toString()).toList();
+
     return MaterialModel(
       materialId: json['materialId'] as String? ?? '',
       classId: json['classId'] as String? ?? '',
@@ -74,6 +86,8 @@ class MaterialModel {
       createdAt: parsedDate,
       isPublished: json['isPublished'] as bool? ?? false,
       learningResources: resources,
+      aiProcessingStatus: json['aiProcessingStatus'] as String?,
+      topics: topics,
     );
   }
 
@@ -88,6 +102,8 @@ class MaterialModel {
       'createdAt': createdAt.toIso8601String(),
       'isPublished': isPublished,
       'learningResources': learningResources.map((e) => e.toJson()).toList(),
+      'aiProcessingStatus': aiProcessingStatus,
+      'topics': topics,
     };
   }
 
@@ -102,6 +118,8 @@ class MaterialModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'isPublished': isPublished,
       'learningResources': learningResources.map((e) => e.toJson()).toList(),
+      'aiProcessingStatus': aiProcessingStatus,
+      'topics': topics,
     };
   }
 }

@@ -65,7 +65,11 @@ class AppRouter {
                 name: 'upload_material',
                 builder: (context, state) {
                   final classId = state.pathParameters['classId'] ?? '';
-                  return UploadMaterialPage(classId: classId);
+                  final materialId = state.uri.queryParameters['materialId'];
+                  return UploadMaterialPage(
+                    classId: classId,
+                    initialMaterialId: materialId,
+                  );
                 },
               ),
               GoRoute(

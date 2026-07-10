@@ -4,56 +4,48 @@ class AppColors {
   AppColors._();
 
   // ==========================================
-  // LIGHT THEME (HSL & Color)
+  // LIGHT THEME (Teal/Green - Parent Reference)
   // ==========================================
   
-  // Primary: Deep Indigo
-  static const HSLColor primaryLightHsl = HSLColor.fromAHSL(1.0, 240.0, 0.80, 0.50);
-  static final Color primaryLight = primaryLightHsl.toColor();
+  // Primary: Teal hijau tenang
+  static const Color primaryLight = Color(0xFF2E7D6F);
 
-  // Secondary: Vibrant Teal
-  static const HSLColor secondaryLightHsl = HSLColor.fromAHSL(1.0, 170.0, 0.85, 0.40);
-  static final Color secondaryLight = secondaryLightHsl.toColor();
+  // Secondary: Teal gelap
+  static const Color secondaryLight = Color(0xFF1B5E50);
 
   // Accent: Golden Amber
-  static const HSLColor accentLightHsl = HSLColor.fromAHSL(1.0, 40.0, 0.95, 0.50);
-  static final Color accentLight = accentLightHsl.toColor();
+  static const Color accentLight = Color(0xFFFFB300);
 
-  // Background: Soft Ice Blue/Grey
-  static const HSLColor backgroundLightHsl = HSLColor.fromAHSL(1.0, 220.0, 0.30, 0.97);
-  static final Color backgroundLight = backgroundLightHsl.toColor();
+  // Background: Off-white kehijauan
+  static const Color backgroundLight = Color(0xFFF5FAF8);
 
   // Surfaces & Text (Light Mode)
   static const Color cardLight = Colors.white;
-  static final Color textPrimaryLight = const HSLColor.fromAHSL(1.0, 222.0, 0.40, 0.15).toColor();
-  static final Color textSecondaryLight = const HSLColor.fromAHSL(1.0, 222.0, 0.20, 0.45).toColor();
-  static final Color borderLight = const HSLColor.fromAHSL(1.0, 220.0, 0.20, 0.90).toColor();
+  static const Color textPrimaryLight = Color(0xFF1A3C34);
+  static const Color textSecondaryLight = Color(0xFF5F7B74);
+  static const Color borderLight = Color(0xFFE0EBE8);
 
   // ==========================================
-  // DARK THEME (HSL & Color)
+  // DARK THEME (Sleek Dark Teal Mode)
   // ==========================================
 
-  // Primary: Deep Indigo (Lighter/Brighter for Dark Mode)
-  static const HSLColor primaryDarkHsl = HSLColor.fromAHSL(1.0, 240.0, 0.80, 0.65);
-  static final Color primaryDark = primaryDarkHsl.toColor();
+  // Primary: Lighter Teal for Dark Mode
+  static const Color primaryDark = Color(0xFF3B9E8D);
 
-  // Secondary: Vibrant Teal
-  static const HSLColor secondaryDarkHsl = HSLColor.fromAHSL(1.0, 170.0, 0.85, 0.60);
-  static final Color secondaryDark = secondaryDarkHsl.toColor();
+  // Secondary: Teal/Green Dark
+  static const Color secondaryDark = Color(0xFF2E7D6F);
 
   // Accent: Golden Amber
-  static const HSLColor accentDarkHsl = HSLColor.fromAHSL(1.0, 40.0, 0.95, 0.65);
-  static final Color accentDark = accentDarkHsl.toColor();
+  static const Color accentDark = Color(0xFFFFC107);
 
-  // Background: Deep Dark Blue/Grey
-  static const HSLColor backgroundDarkHsl = HSLColor.fromAHSL(1.0, 222.0, 0.40, 0.08);
-  static final Color backgroundDark = backgroundDarkHsl.toColor();
+  // Background: Deep Dark Green-Blue
+  static const Color backgroundDark = Color(0xFF0C1F1B);
 
   // Surfaces & Text (Dark Mode)
-  static final Color cardDark = const HSLColor.fromAHSL(1.0, 222.0, 0.35, 0.13).toColor();
-  static final Color textPrimaryDark = const HSLColor.fromAHSL(1.0, 220.0, 0.15, 0.95).toColor();
-  static final Color textSecondaryDark = const HSLColor.fromAHSL(1.0, 220.0, 0.15, 0.70).toColor();
-  static final Color borderDark = const HSLColor.fromAHSL(1.0, 222.0, 0.30, 0.18).toColor();
+  static const Color cardDark = Color(0xFF142B26);
+  static const Color textPrimaryDark = Color(0xFFE0ECE9);
+  static const Color textSecondaryDark = Color(0xFF8BA6A0);
+  static const Color borderDark = Color(0xFF1D3C35);
 
   // Common/Semantic Colors
   static const Color success = Color(0xFF10B981); // Emerald

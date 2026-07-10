@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +11,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../../data/models/material_model.dart';
+import '../../../../data/repositories/material_repository_impl.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/quick_check/quick_check_bloc.dart';
 import 'quick_check_page.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class PdfViewerPage extends StatefulWidget {
   final MaterialModel material;
@@ -45,11 +49,19 @@ class _PdfViewerPageState extends State<PdfViewerPage> with WidgetsBindingObserv
 
   bool get _isTargetMet => _readDurationSec >= 60; // Set to 60 seconds (1 min) for demo purposes, instead of 10 min
 
+  bool _isGuru = false;
+
   @override
   void initState() {
     super.initState();
+    final authState = context.read<AuthBloc>().state;
+    if (authState is Authenticated) {
+      _isGuru = authState.user.role == 'guru';
+    }
     WidgetsBinding.instance.addObserver(this);
-    _startFocusTimer();
+    if (!_isGuru) {
+      _startFocusTimer();
+    }
   }
 
   @override
@@ -193,51 +205,50 @@ class _PdfViewerPageState extends State<PdfViewerPage> with WidgetsBindingObserv
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: _isGuru,
       onPopInvoked: (didPop) async {
         if (didPop) return;
-        await _saveActivityAndExit();
+        if (_isGuru) {
+          Navigator.of(context).pop();
+        } else {
+          await _saveActivityAndExit();
+        }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            widget.material.title,
-            style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 18, color: Colors.white),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          backgroundColor: Colors.indigo.shade900,
-          foregroundColor: Colors.white,
-          elevation: 0,
+        backgroundColor: AppColors.backgroundLight,
+        appBar: SharedAppBar(
+          title: widget.material.title,
           actions: [
-            TextButton.icon(
-              onPressed: _isTargetMet ? _saveActivityAndExit : null,
-              icon: const Icon(Icons.check_circle_outline),
-              label: Text(
-                'Selesai',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+            if (!_isGuru)
+              TextButton.icon(
+                onPressed: _isTargetMet ? _saveActivityAndExit : null,
+                icon: const Icon(Icons.check_circle_outline),
+                label: Text(
+                  'Selesai',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: _isTargetMet ? AppColors.accentLight : Colors.grey.shade400,
+                ),
               ),
-              style: TextButton.styleFrom(
-                foregroundColor: _isTargetMet ? Colors.greenAccent : Colors.grey.shade400,
-              ),
-            ),
           ],
         ),
         body: Column(
           children: [
-            // Banner indikator tracker (Non-invasif tapi transparan ke pengguna)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.indigo.shade50,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildStatItem(Icons.timer_outlined, 'Membaca: ${_readDurationSec}s'),
-                  _buildStatItem(Icons.pause_circle_outline, 'Idle: ${_idleTimeSec}s', isWarning: _idleTimeSec > 30),
-                  _buildStatItem(Icons.switch_access_shortcut, 'Pindah Tab: $_tabSwitches', isWarning: _tabSwitches > 0),
-                ],
+            // Banner indikator tracker (Hanya untuk siswa)
+            if (!_isGuru)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: AppColors.primaryLight.withValues(alpha: 0.1),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildStatItem(Icons.timer_outlined, 'Membaca: ${_readDurationSec}s'),
+                    _buildStatItem(Icons.pause_circle_outline, 'Idle: ${_idleTimeSec}s', isWarning: _idleTimeSec > 30),
+                    _buildStatItem(Icons.switch_access_shortcut, 'Pindah Tab: $_tabSwitches', isWarning: _tabSwitches > 0),
+                  ],
+                ),
               ),
-            ),
             Expanded(
               child: Listener(
                 onPointerDown: (_) => _resetActionTimer(),
@@ -245,67 +256,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> with WidgetsBindingObserv
                 onPointerUp: (_) => _resetActionTimer(),
                 child: Container(
                   color: Colors.grey.shade300,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: 5, // 5 Halaman PDF Dummy
-                    itemBuilder: (context, index) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        height: 600,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 5,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(32.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Halaman ${index + 1}',
-                                style: GoogleFonts.outfit(
-                                  color: Colors.grey.shade400,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              Text(
-                                widget.material.title,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo.shade900,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Expanded(
-                                child: Text(
-                                  'Ini adalah simulasi halaman PDF untuk materi ${widget.material.title}.\n\n'
-                                  'Karena limitasi rendering PDF (CORS) di lingkungan Web lokal, '
-                                  'kami menggunakan tampilan tiruan (mock) ini agar Anda dapat menguji '
-                                  'sistem Pelacak Fokus (Focus Tracker) dengan lancar.\n\n'
-                                  'Silakan gulir ke bawah atau berdiam diri untuk melihat peringatan AI '
-                                  'berfungsi sebagaimana mestinya.',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 16,
-                                    height: 1.6,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                  child: _buildPdfContent(),
                 ),
               ),
             ),
@@ -316,7 +267,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> with WidgetsBindingObserv
   }
 
   Widget _buildStatItem(IconData icon, String text, {bool isWarning = false}) {
-    final color = isWarning ? Colors.orange.shade800 : Colors.indigo.shade700;
+    final color = isWarning ? AppColors.accentLight : AppColors.primaryLight;
     return Row(
       children: [
         Icon(icon, size: 14, color: color),
@@ -330,6 +281,32 @@ class _PdfViewerPageState extends State<PdfViewerPage> with WidgetsBindingObserv
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPdfContent() {
+    final cachedBytes = MaterialRepositoryImpl.getCachedBytes(widget.material.materialId);
+    if (cachedBytes != null) {
+      return SfPdfViewer.memory(
+        Uint8List.fromList(cachedBytes),
+        key: _pdfViewerKey,
+        onDocumentLoadFailed: (details) {
+          setState(() {
+            _hasPdfError = true;
+          });
+        },
+      );
+    }
+
+    final url = widget.material.fileUrl;
+    return SfPdfViewer.network(
+      url,
+      key: _pdfViewerKey,
+      onDocumentLoadFailed: (details) {
+        setState(() {
+          _hasPdfError = true;
+        });
+      },
     );
   }
 }

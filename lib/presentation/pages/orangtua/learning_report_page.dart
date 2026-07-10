@@ -10,21 +10,23 @@ import 'package:printing/printing.dart';
 import '../../bloc/learning_report/learning_report_bloc.dart';
 import '../../bloc/learning_report/learning_report_event.dart';
 import '../../bloc/learning_report/learning_report_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../widgets/shared_ui_kit.dart';
 
 class LearningReportPage extends StatelessWidget {
   const LearningReportPage({super.key});
 
   // ── Palette ──
-  static const Color _primary = Color(0xFF2E7D6F);
-  static const Color _primaryDark = Color(0xFF1B5E50);
-  static const Color _surface = Color(0xFFF5FAF8);
-  static const Color _cardBg = Colors.white;
-  static const Color _textPrimary = Color(0xFF1A3C34);
-  static const Color _textSecondary = Color(0xFF5F7B74);
+  static const Color _primary = AppColors.primaryLight;
+  static const Color _primaryDark = AppColors.secondaryLight;
+  static const Color _surface = AppColors.backgroundLight;
+  static const Color _cardBg = AppColors.cardLight;
+  static const Color _textPrimary = AppColors.textPrimaryLight;
+  static const Color _textSecondary = AppColors.textSecondaryLight;
   static const Color _chartLine = Color(0xFF5C6BC0);
   static const Color _chartDot = Color(0xFF3F51B5);
-  static const Color _passedColor = Color(0xFF43A047);
-  static const Color _failedColor = Color(0xFFE53935);
+  static const Color _passedColor = AppColors.success;
+  static const Color _failedColor = AppColors.error;
 
   String _formatDateIndonesian(DateTime date, {bool shortMonth = false}) {
     final months = [
@@ -64,18 +66,8 @@ class LearningReportPage extends StatelessWidget {
         ..add(const LoadLearningReport(studentUid: 'dummy_student')),
       child: Scaffold(
         backgroundColor: _surface,
-        appBar: AppBar(
-          title: Text(
-            'Laporan Akademik',
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: _primaryDark,
-          foregroundColor: Colors.white,
-          elevation: 0,
+        appBar: const SharedAppBar(
+          title: 'Laporan Akademik',
         ),
         body: BlocBuilder<LearningReportBloc, LearningReportState>(
           builder: (context, state) {
@@ -193,19 +185,10 @@ class LearningReportPage extends StatelessWidget {
     required String value,
     required Color color,
   }) {
-    return Container(
+    return SharedCard(
+      color: _cardBg,
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      borderRadius: 16,
       child: Column(
         children: [
           Container(

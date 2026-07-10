@@ -1,10 +1,22 @@
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../data/models/assessment_model.dart';
 import '../../../../data/models/question_model.dart';
+import '../../../../data/repositories/mock_db.dart';
 import 'quick_check_event.dart';
 import 'quick_check_state.dart';
+
+bool get isMockMode {
+  try {
+    return Firebase.app().options.apiKey == "AIzaSyDummyKeyForLocalWebTestingOnly";
+  } catch (_) {
+    return true;
+  }
+}
 
 class QuickCheckBloc extends Bloc<QuickCheckEvent, QuickCheckState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -28,170 +40,117 @@ class QuickCheckBloc extends Bloc<QuickCheckEvent, QuickCheckState> {
       _currentStudentId = event.studentId;
       _currentMaterialId = event.materialId;
 
-      // ALWAYS return dummy data for Mock MVP because Firestore is not connected
-      // if (event.studentId == 'dummy_student' || event.studentId.contains('mock')) {
+      AssessmentModel? assessment;
+
+      if (isMockMode) {
+        // 1. Cek progress siswa untuk materi ini
+        final allProgress = await MockDb.getAll('student_progress');
+        final progressMatch = allProgress.firstWhere(
+          (p) => p['studentId'] == event.studentId && p['materialId'] == event.materialId,
+          orElse: () => const {},
+        );
+
+        if (progressMatch.isNotEmpty) {
+          if (progressMatch['isQuickCheckPassed'] == true && event.assessmentType == 'quick_check') {
+            emit(const QuickCheckPassed(score: 3));
+            return;
+          }
+          if (progressMatch['cooldownUntil'] != null) {
+            final cooldownTime = DateTime.parse(progressMatch['cooldownUntil'] as String);
+            if (DateTime.now().isBefore(cooldownTime)) {
+              emit(QuickCheckCooldown(cooldownUntil: cooldownTime));
+              return;
+            }
+          }
+        }
+
+        // 2. Muat soal dari MockDb
+        final allAssessments = await MockDb.getAll('assessments');
+        final match = allAssessments.firstWhere(
+          (a) => a['materialId'] == event.materialId && a['type'] == event.assessmentType,
+          orElse: () => const {},
+        );
+
+        if (match.isNotEmpty) {
+          assessment = AssessmentModel.fromJson(match);
+        }
+      } else {
+        // Online Firestore
+        // 1. Cek progress
+        final progressSnapshot = await _firestore
+            .collection('student_progress')
+            .where('studentId', isEqualTo: event.studentId)
+            .where('materialId', isEqualTo: event.materialId)
+            .limit(1)
+            .get();
+
+        if (progressSnapshot.docs.isNotEmpty) {
+          final progressData = progressSnapshot.docs.first.data();
+          if (progressData['isQuickCheckPassed'] == true && event.assessmentType == 'quick_check') {
+            emit(const QuickCheckPassed(score: 3));
+            return;
+          }
+          if (progressData['cooldownUntil'] != null) {
+            DateTime cooldownTime = (progressData['cooldownUntil'] as Timestamp).toDate();
+            if (DateTime.now().isBefore(cooldownTime)) {
+              emit(QuickCheckCooldown(cooldownUntil: cooldownTime));
+              return;
+            }
+          }
+        }
+
+        // 2. Muat soal dari Firestore
+        final assessmentSnapshot = await _firestore
+            .collection('assessments')
+            .where('materialId', isEqualTo: event.materialId)
+            .where('type', isEqualTo: event.assessmentType)
+            .limit(1)
+            .get();
+
+        if (assessmentSnapshot.docs.isNotEmpty) {
+          assessment = AssessmentModel.fromJson(
+            assessmentSnapshot.docs.first.data()..['assessmentId'] = assessmentSnapshot.docs.first.id
+          );
+        }
+      }
+
+      // Fallback jika tidak ditemukan di database
+      if (assessment == null) {
         final isMainQuiz = event.assessmentType == 'quiz_utama';
-        
-        final dummyAssessment = AssessmentModel(
-          assessmentId: isMainQuiz ? 'dummy_quiz_utama_1' : 'dummy_quiz_1',
+        assessment = AssessmentModel(
+          assessmentId: isMainQuiz ? 'dummy_qu_${event.materialId}' : 'dummy_qc_${event.materialId}',
           materialId: event.materialId,
           classId: 'dummy_class',
           type: event.assessmentType,
           durationMinutes: isMainQuiz ? 15 : 5,
           questions: isMainQuiz 
-          ? [
-              QuestionModel(
-                questionId: 'q1',
-                questionText: 'Manakah dari berikut ini urutan yang benar dari organ pencernaan manusia?',
-                options: ['Mulut - Lambung - Usus Halus - Usus Besar', 'Mulut - Kerongkongan - Lambung - Usus Halus - Usus Besar', 'Mulut - Kerongkongan - Usus Halus - Lambung', 'Mulut - Usus Besar - Usus Halus - Lambung'],
-                correctAnswerIndex: 1,
-              ),
-              QuestionModel(
-                questionId: 'q2',
-                questionText: 'Fungsi utama dari jonjot usus (vili) pada usus halus adalah...',
-                options: ['Menghasilkan enzim pencernaan', 'Memperluas permukaan penyerapan', 'Membunuh bakteri patogen', 'Menyimpan makanan sementara'],
-                correctAnswerIndex: 1,
-              ),
-              QuestionModel(
-                questionId: 'q3',
-                questionText: 'Bakteri E. coli di usus besar berperan dalam pembentukan vitamin...',
-                options: ['Vitamin A', 'Vitamin C', 'Vitamin K', 'Vitamin D'],
-                correctAnswerIndex: 2,
-              ),
-              QuestionModel(
-                questionId: 'q4',
-                questionText: 'Enzim pepsin di lambung berfungsi untuk memecah...',
-                options: ['Lemak', 'Karbohidrat', 'Protein', 'Vitamin'],
-                correctAnswerIndex: 2,
-              ),
-              QuestionModel(
-                questionId: 'q5',
-                questionText: 'Gerakan meremas-remas pada kerongkongan disebut gerakan...',
-                options: ['Peristaltik', 'Mekanik', 'Kimiawi', 'Refleks'],
-                correctAnswerIndex: 0,
-              ),
-            ]
-          : [
-            QuestionModel(
-              questionId: 'q1',
-              questionText: 'Apa fungsi utama enzim amilase dalam sistem pencernaan?',
-              options: [
-                'Memecah protein',
-                'Memecah karbohidrat menjadi zat gula',
-                'Menyerap air',
-                'Menghancurkan bakteri'
-              ],
-              correctAnswerIndex: 1,
-            ),
-            QuestionModel(
-              questionId: 'q2',
-              questionText: 'Di bagian organ manakah pencernaan mekanik terjadi secara paling intensif?',
-              options: ['Usus halus', 'Lambung', 'Mulut', 'Kerongkongan'],
-              correctAnswerIndex: 2,
-            ),
-            QuestionModel(
-              questionId: 'q3',
-              questionText: 'Zat apa yang dihasilkan hati untuk membantu pencernaan lemak?',
-              options: ['Cairan Empedu', 'Asam Klorida', 'Enzim Pepsin', 'Insulin'],
-              correctAnswerIndex: 0,
-            ),
-          ],
+              ? List.generate(10, (idx) => QuestionModel(
+                  questionId: 'q_$idx',
+                  questionText: 'Pertanyaan Kuis Utama $idx mengenai materi ini?',
+                  options: ['Opsi A', 'Opsi B', 'Opsi C', 'Opsi D'],
+                  correctAnswerIndex: idx % 4,
+                ))
+              : List.generate(5, (idx) => QuestionModel(
+                  questionId: 'q_$idx',
+                  questionText: 'Pertanyaan Quick Check $idx mengenai materi ini?',
+                  options: ['Opsi A', 'Opsi B', 'Opsi C', 'Opsi D'],
+                  correctAnswerIndex: idx % 4,
+                )),
         );
-
-        _currentAssessment = dummyAssessment;
-        emit(QuickCheckReady(
-          assessment: dummyAssessment,
-          questions: dummyAssessment.questions,
-        ));
-        return;
-      // }
-
-      // 1. Cek progress siswa untuk materi ini
-      final progressSnapshot = await _firestore
-          .collection('student_progress')
-          .where('studentId', isEqualTo: event.studentId)
-          .where('materialId', isEqualTo: event.materialId)
-          .limit(1)
-          .get();
-
-      if (progressSnapshot.docs.isNotEmpty) {
-        final progressData = progressSnapshot.docs.first.data();
-        
-        if (progressData['isQuickCheckPassed'] == true) {
-          // Sudah lulus, arahkan ke success atau main quiz
-          emit(const QuickCheckPassed(score: 3)); // Dummy full score if already passed
-          return;
-        }
-
-        // Cek cooldown
-        if (progressData['cooldownUntil'] != null) {
-          DateTime cooldownTime = (progressData['cooldownUntil'] as Timestamp).toDate();
-          if (DateTime.now().isBefore(cooldownTime)) {
-            emit(QuickCheckCooldown(cooldownUntil: cooldownTime));
-            return;
-          }
-        }
       }
 
-      // 2. Jika tidak ada cooldown, muat soal Quick Check
-      final assessmentSnapshot = await _firestore
-          .collection('assessments')
-          .where('materialId', isEqualTo: event.materialId)
-          .where('type', isEqualTo: 'quick_check')
-          .limit(1)
-          .get();
-
-      if (assessmentSnapshot.docs.isEmpty) {
-        // Fallback: Dummy Data agar UI bisa dites walau Database kosong
-        final dummyAssessment = AssessmentModel(
-          assessmentId: 'dummy_quiz_1',
-          materialId: event.materialId,
-          classId: 'dummy_class',
-          type: 'quick_check',
-          durationMinutes: 5,
-          questions: [
-            QuestionModel(
-              questionId: 'q1',
-              questionText: 'Apa fungsi utama enzim amilase dalam sistem pencernaan?',
-              options: [
-                'Memecah protein',
-                'Memecah karbohidrat menjadi zat gula',
-                'Menyerap air',
-                'Menghancurkan bakteri'
-              ],
-              correctAnswerIndex: 1,
-            ),
-            QuestionModel(
-              questionId: 'q2',
-              questionText: 'Di bagian organ manakah pencernaan mekanik terjadi secara paling intensif?',
-              options: ['Usus halus', 'Lambung', 'Mulut', 'Kerongkongan'],
-              correctAnswerIndex: 2,
-            ),
-            QuestionModel(
-              questionId: 'q3',
-              questionText: 'Zat apa yang dihasilkan hati untuk membantu pencernaan lemak?',
-              options: ['Cairan Empedu', 'Asam Klorida', 'Enzim Pepsin', 'Insulin'],
-              correctAnswerIndex: 0,
-            ),
-          ],
-        );
-
-        _currentAssessment = dummyAssessment;
-        emit(QuickCheckReady(
-          assessment: dummyAssessment,
-          questions: dummyAssessment.questions,
-        ));
-        return;
-      }
-
-      final assessment = AssessmentModel.fromJson(
-        assessmentSnapshot.docs.first.data()..['assessmentId'] = assessmentSnapshot.docs.first.id
-      );
       _currentAssessment = assessment;
+
+      // Randomisasi Soal untuk Quick Check (Ambil 3 Soal dari total pool)
+      List<QuestionModel> finalQuestions = List<QuestionModel>.from(assessment.questions);
+      if (event.assessmentType == 'quick_check') {
+        finalQuestions.shuffle(Random());
+        finalQuestions = finalQuestions.take(3).toList();
+      }
 
       emit(QuickCheckReady(
         assessment: assessment,
-        questions: assessment.questions,
+        questions: finalQuestions,
       ));
     } catch (e) {
       emit(QuickCheckError('Gagal memuat kuis: $e'));
@@ -209,25 +168,88 @@ class QuickCheckBloc extends Bloc<QuickCheckEvent, QuickCheckState> {
       int correctAnswers = 0;
 
       for (var question in _currentAssessment!.questions) {
-        final answerIndex = event.answers[question.questionId];
-        if (answerIndex != null && answerIndex == question.correctAnswerIndex) {
-          correctAnswers++;
+        final studentAnswer = event.answers[question.questionId];
+        if (studentAnswer == null) continue;
+
+        if (question.type == 'majemuk_kompleks') {
+          final correctAnswersList = question.correctAnswers ?? [1, 0, 1];
+          if (studentAnswer is List) {
+            bool allCorrect = true;
+            for (int i = 0; i < correctAnswersList.length; i++) {
+              if (i < studentAnswer.length && studentAnswer[i] != correctAnswersList[i]) {
+                allCorrect = false;
+                break;
+              }
+            }
+            if (allCorrect) {
+              correctAnswers++;
+            }
+          }
+        } else if (question.type == 'isian_singkat') {
+          final correctText = question.correctAnswerText ?? '';
+          if (studentAnswer is String &&
+              studentAnswer.trim().toLowerCase() == correctText.trim().toLowerCase()) {
+            correctAnswers++;
+          }
+        } else {
+          if (studentAnswer is int && studentAnswer == question.correctAnswerIndex) {
+            correctAnswers++;
+          }
         }
       }
 
-      // Bypass Firestore jika menggunakan akun dummy
-      if (_currentStudentId == 'dummy_student' || _currentStudentId.contains('mock')) {
-        // Threshold kelulusan: 60% benar
-        final passingThreshold = (_currentAssessment!.questions.length * 0.6).ceil();
-        if (correctAnswers >= passingThreshold) {
+      final isQC = _currentAssessment!.type == 'quick_check';
+      final totalQs = event.answers.length; // Number of questions presented
+      final passingThreshold = isQC ? 2 : (totalQs * 0.6).ceil();
+
+      if (isMockMode) {
+        // Simpan progress di MockDb
+        final allProgress = await MockDb.getAll('student_progress');
+        final matchIndex = allProgress.indexWhere(
+          (p) => p['studentId'] == _currentStudentId && p['materialId'] == _currentMaterialId,
+        );
+
+        final Map<String, dynamic> newProgress = {
+          'studentId': _currentStudentId,
+          'materialId': _currentMaterialId,
+        };
+
+        if (matchIndex >= 0) {
+          newProgress.addAll(Map<String, dynamic>.from(allProgress[matchIndex]));
+        }
+
+        if (correctAnswers >= passingThreshold || !isQC) {
+          if (isQC) {
+            newProgress['isQuickCheckPassed'] = true;
+          } else {
+            newProgress['isQuizUtamaCompleted'] = true;
+          }
+          newProgress['completedAt'] = DateTime.now().toIso8601String();
+          
+          if (matchIndex >= 0) {
+            allProgress[matchIndex] = newProgress;
+          } else {
+            allProgress.add(newProgress);
+          }
+          await MockDb.save('student_progress', '${_currentStudentId}_${_currentMaterialId}', newProgress);
           emit(QuickCheckPassed(score: correctAnswers));
         } else {
           final cooldownEnd = DateTime.now().add(const Duration(minutes: 10));
+          newProgress['isQuickCheckPassed'] = false;
+          newProgress['cooldownUntil'] = cooldownEnd.toIso8601String();
+
+          if (matchIndex >= 0) {
+            allProgress[matchIndex] = newProgress;
+          } else {
+            allProgress.add(newProgress);
+          }
+          await MockDb.save('student_progress', '${_currentStudentId}_${_currentMaterialId}', newProgress);
           emit(QuickCheckFailed(score: correctAnswers, cooldownUntil: cooldownEnd));
         }
         return;
       }
 
+      // Online Firestore
       // Cari atau buat doc reference untuk progress
       final progressQuery = await _firestore
           .collection('student_progress')
@@ -243,18 +265,18 @@ class QuickCheckBloc extends Bloc<QuickCheckEvent, QuickCheckState> {
         progressRef = _firestore.collection('student_progress').doc();
       }
 
-      if (correctAnswers >= 2) {
-        // LULUS (Benar >= 2)
+      if (correctAnswers >= passingThreshold || !isQC) {
+        // LULUS
         await progressRef.set({
           'studentId': _currentStudentId,
           'materialId': _currentMaterialId,
-          'isQuickCheckPassed': true,
+          isQC ? 'isQuickCheckPassed' : 'isQuizUtamaCompleted': true,
           'completedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
 
         emit(QuickCheckPassed(score: correctAnswers));
       } else {
-        // GAGAL (Benar < 2) -> Cooldown 10 menit
+        // GAGAL -> Cooldown 10 menit
         final cooldownEnd = DateTime.now().add(const Duration(minutes: 10));
         
         await progressRef.set({

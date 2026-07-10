@@ -2,23 +2,40 @@ import os
 import json
 import google.generativeai as genai
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
-# Setup API Key
+# Setup API Key (Membaca dari Environment atau file .env lokal)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+if not GEMINI_API_KEY:
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            for line in f:
+                if "=" in line and not line.strip().startswith("#"):
+                    key, val = line.strip().split("=", 1)
+                    if key.strip() == "GEMINI_API_KEY":
+                        GEMINI_API_KEY = val.strip()
+                        os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
+                        break
+
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
 class QuestionSchema(BaseModel):
-    questionText: str = Field(description="Teks pertanyaan kuis pilihan ganda.")
-    options: List[str] = Field(description="Daftar 4 opsi pilihan jawaban (A, B, C, D). Harus tepat 4 opsi.")
-    correctAnswerIndex: int = Field(description="Indeks jawaban yang benar, dimulai dari 0 sampai 3.")
+    questionId: str = Field(description="ID pertanyaan kuis unik, misal: q001, q002, dst.")
+    questionText: str = Field(description="Teks pertanyaan kuis secara akademik langsung tanpa referensi ke file dokumen.")
+    options: List[str] = Field(description="Daftar opsi pilihan jawaban. Untuk pilihan_ganda biasa wajib sediakan 5 opsi (A, B, C, D, E). Untuk majemuk_kompleks dan isian_singkat biarkan list kosong [].")
+    correctAnswerIndex: Optional[int] = Field(None, description="Indeks jawaban benar (0 sampai 4) untuk pilihan_ganda biasa. Set null untuk tipe soal lainnya.")
+    type: str = Field("pilihan_ganda", description="Tipe soal: 'pilihan_ganda' | 'majemuk_kompleks' | 'isian_singkat'")
+    correctAnswers: Optional[List[int]] = Field(None, description="Hanya untuk tipe 'majemuk_kompleks', berisi list angka 1 (Benar) atau 0 (Salah) untuk merepresentasikan jawaban setiap pernyataan sub-soal.")
+    correctAnswerText: Optional[str] = Field(None, description="Hanya untuk tipe 'isian_singkat', berisi kunci jawaban kata/frasa singkat.")
+    topicTag: str = Field("", description="Tag topik spesifik dari modul yang dicakup oleh soal ini.")
 
 class MaterialProcessResult(BaseModel):
-    summary: str = Field(description="Ringkasan materi pembelajaran yang komprehensif namun padat (maksimal 300 kata).")
-    topics: List[str] = Field(description="Daftar topik utama atau kompetensi inti yang dibahas dalam materi tersebut.")
+    summary: str = Field(description="Ringkasan materi pembelajaran yang komprehensif (maksimal 300 kata).")
+    topics: List[str] = Field(description="Daftar topik utama yang dibahas dalam materi tersebut.")
     quick_check: List[QuestionSchema] = Field(description="Daftar tepat 3 soal kuis singkat untuk Quick Check pemahaman awal.")
-    quiz_utama: List[QuestionSchema] = Field(description="Daftar tepat 10 soal kuis utama dengan tingkat kesulitan yang bertingkat.")
+    quiz_utama: List[QuestionSchema] = Field(description="Daftar tepat 10 soal kuis utama dengan tingkat kesulitan bertahap.")
 
 def generate_dynamic_fallback(text: str, filename: str) -> dict:
     """Generates a realistic, dynamic fallback summary and quizzes when Gemini API quota is exceeded."""
@@ -26,7 +43,7 @@ def generate_dynamic_fallback(text: str, filename: str) -> dict:
     if not title.strip():
         title = "Dokumen Pembelajaran"
 
-    # Extract words to find keywords (filtering out common Indonesian stop words)
+    # Extract keywords
     stopwords = {
         "adalah", "tentang", "yang", "untuk", "dalam", "dengan", "dan", "atau", "dari", 
         "pada", "oleh", "juga", "yaitu", "ialah", "bahwa", "sebagai", "dapat", "akan", 
@@ -36,16 +53,14 @@ def generate_dynamic_fallback(text: str, filename: str) -> dict:
     words = [w.strip(",.()\"'[]:;-+=!?").lower() for w in text.split() if len(w) > 4]
     filtered_words = [w for w in words if w.isalnum() and w not in stopwords]
     
-    # Capitalize unique keywords for display
     unique_words = []
     for w in filtered_words:
         cap_w = w.capitalize()
         if cap_w not in unique_words:
             unique_words.append(cap_w)
             
-    keywords = unique_words[:5] if len(unique_words) >= 5 else ["Konsep", "Metodologi", "Analisis", "Evaluasi", "Implementasi"]
+    keywords = unique_words[:5] if len(unique_words) >= 5 else ["Metode", "Konsep", "Organisasi", "Evaluasi", "Keselamatan"]
     
-    # Try to extract the first two readable sentences
     sentences = [s.strip() for s in text.split(".") if len(s.strip()) > 20]
     extracted_summary = ""
     if len(sentences) >= 2:
@@ -53,125 +68,151 @@ def generate_dynamic_fallback(text: str, filename: str) -> dict:
         if len(extracted_summary) > 400:
             extracted_summary = extracted_summary[:400] + "..."
     else:
-        extracted_summary = f"Dokumen '{title}' menyajikan pembahasan mendalam mengenai topik ini, mencakup kerangka kerja, teori pendukung, dan evaluasi hasil."
+        extracted_summary = "Materi membahas tentang prinsip-prinsip sains, metode ilmiah dalam melakukan pengamatan, dan keselamatan kerja di laboratorium."
         
-    summary = f"Ringkasan '{title}': {extracted_summary} Fokus utama materi adalah pemahaman menyeluruh terhadap struktur konsep dan aplikasi praktis di lapangan."
+    summary = f"Pembahasan {title}: {extracted_summary} Fokus utama materi adalah pemahaman menyeluruh terhadap konsep dasar dan penerapan praktis."
     
-    # Daftar template pertanyaan & opsi jawaban yang variatif agar tidak terkesan mekanis/template
-    templates = [
+    quick_check = [
         {
-            "question": "Apa dampak utama dari penerapan konsep '{kw}' dalam pembahasan '{title}'?",
-            "options": [
-                "Meningkatkan akurasi analisis dan pemecahan kasus secara terukur",
-                "Menyederhanakan proses tanpa memberikan dampak signifikan",
-                "Hanya berfungsi sebagai pelengkap administrasi dokumen",
-                "Menyulitkan pemahaman konsep dasar bagi pemula"
-            ]
+            "questionId": "qc_fb_1",
+            "questionText": "Hingga kini penyakit AIDS belum ada obatnya. Penelitian dilakukan oleh para ahli untuk mengetahui aktivitas Virus HIV pada tingkat organisasi kehidupan yaitu...",
+            "options": ["A. Molekul", "B. Sel", "C. Jaringan", "D. Organ", "E. Sistem organ"],
+            "correctAnswerIndex": 1,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Organisasi Kehidupan"
         },
         {
-            "question": "Manakah di bawah ini yang paling tepat menggambarkan karakteristik utama dari '{kw}'?",
-            "options": [
-                "Bersifat fundamental dan terintegrasi dengan topik utama",
-                "Bersifat opsional dan dapat diabaikan dalam analisis praktis",
-                "Hanya berlaku pada kasus-kasus berskala kecil",
-                "Merupakan bagian terpisah yang tidak memengaruhi hasil"
-            ]
+            "questionId": "qc_fb_2",
+            "questionText": "Pembuatan film terkenal Jurassic Park menceritakan kehidupan hewan purba. Cabang ilmu biologi yang paling berperan dalam memodelkan hewan purba tersebut adalah...",
+            "options": ["A. Evolusi", "B. Botani", "C. Zoologi", "D. Palaeontologi", "E. Anatomi"],
+            "correctAnswerIndex": 3,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Cabang Biologi"
         },
         {
-            "question": "Berdasarkan isi dokumen '{title}', mengapa '{kw}' dianggap sebagai komponen penting?",
-            "options": [
-                "Karena menjadi dasar evaluasi dan perumusan rekomendasi tindakan",
-                "Karena disarankan oleh standar kurikulum tanpa alasan teknis",
-                "Hanya untuk memenuhi kelengkapan bab pembahasan materi",
-                "Guna meminimalkan interaksi aktif dalam proses belajar"
-            ]
-        },
-        {
-            "question": "Bagaimana hubungan logis antara '{kw}' dengan topik bahasan '{title}'?",
-            "options": [
-                "Saling mendukung untuk membentuk pemahaman konsep yang utuh",
-                "Bertolak belakang sehingga membingungkan pembaca",
-                "Tidak memiliki kaitan langsung maupun tidak langsung",
-                "Hanya berhubungan pada bagian kesimpulan akhir"
-            ]
-        },
-        {
-            "question": "Apa tujuan utama dari dipelajarinya konsep '{kw}' dalam materi ini?",
-            "options": [
-                "Membekali siswa dengan metodologi analisis yang sistematis",
-                "Sekadar menghafal definisi tanpa perlu menerapkannya",
-                "Mempercepat durasi belajar tanpa memperhatikan kualitas",
-                "Mengurangi porsi latihan soal dalam evaluasi kompetensi"
-            ]
-        },
-        {
-            "question": "Jika '{kw}' tidak dipahami dengan benar dalam konteks '{title}', apa risiko utama yang terjadi?",
-            "options": [
-                "Terjadinya kesalahan diagnosis dan bias pada hasil evaluasi",
-                "Tidak ada risiko karena topik ini bersifat opsional",
-                "Proses belajar akan menjadi lebih cepat dan efisien",
-                "Hanya memengaruhi nilai tugas harian secara minor"
-            ]
-        },
-        {
-            "question": "Dalam dokumen '{title}', konsep '{kw}' paling erat dikaitkan dengan aspek...",
-            "options": [
-                "Metodologi implementasi dan efektivitas pemecahan masalah",
-                "Sejarah penemuan teori dan biografi tokoh pendukung",
-                "Latihan hafalan jangka pendek sebelum ujian utama",
-                "Penyusunan laporan administrasi di akhir semester"
-            ]
-        },
-        {
-            "question": "Bagaimana cara terbaik untuk mengukur keberhasilan penerapan '{kw}'?",
-            "options": [
-                "Melalui evaluasi berkala dan analisis performa secara konsisten",
-                "Cukup dengan melihat durasi waktu membaca dokumen",
-                "Dengan membandingkan jumlah halaman yang telah dibaca",
-                "Tidak diperlukan pengukuran khusus karena hasilnya konstan"
-            ]
-        },
-        {
-            "question": "Apa kesimpulan utama dokumen '{title}' mengenai peran strategis '{kw}'?",
-            "options": [
-                "Menjadi akselerator penting dalam peningkatan pemahaman materi",
-                "Hanya sebagai alternatif pilihan jika metode utama gagal",
-                "Dapat digantikan sepenuhnya oleh komponen lain tanpa masalah",
-                "Merupakan konsep teoritis yang sulit diwujudkan secara praktis"
-            ]
-        },
-        {
-            "question": "Bagaimana '{kw}' memengaruhi pola analisis yang dibahas dalam '{title}'?",
-            "options": [
-                "Mengarahkan pemikiran ke pendekatan yang lebih logis dan terstruktur",
-                "Membatasi kreativitas berpikir dalam menemukan solusi alternatif",
-                "Membuat alur analisis menjadi berputar-putar tanpa arah",
-                "Tidak memberikan pengaruh apa pun pada pola berpikir siswa"
-            ]
+            "questionId": "qc_fb_3",
+            "questionText": "Seseorang yang akan menjalani transplantasi organ hati perlu memahami struktur fungsi hati. Studi tersebut dipelajari pada tingkat organisasi...",
+            "options": ["A. Sel", "B. Jaringan", "C. Organ", "D. Sistem organ", "E. Individu"],
+            "correctAnswerIndex": 2,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Organisasi Kehidupan"
         }
     ]
-
-    # Generate Quick Check (ambil 3 template pertama)
-    quick_check = []
-    for idx in range(3):
-        tpl = templates[idx]
-        kw = keywords[idx % len(keywords)]
-        quick_check.append({
-            "questionText": tpl["question"].format(kw=kw, title=title),
-            "options": tpl["options"],
-            "correctAnswerIndex": idx % 4
-        })
     
-    # Generate Kuis Utama (gunakan semua 10 template)
-    quiz_utama = []
-    for idx in range(10):
-        tpl = templates[idx]
-        kw = keywords[idx % len(keywords)]
-        quiz_utama.append({
-            "questionText": tpl["question"].format(kw=kw, title=title),
-            "options": tpl["options"],
-            "correctAnswerIndex": (idx + 1) % 4
-        })
+    quiz_utama = [
+        {
+            "questionId": "qu_fb_1",
+            "questionText": "Berikut merupakan salah satu manfaat penerapan biologi di bidang peternakan secara modern adalah...",
+            "options": [
+              "A. Memperbanyak dengan teknik kultur jaringan",
+              "B. Membuat antibodi monoklonal",
+              "C. Membuat vaksin pencegah penyakit virus SARS",
+              "D. Terapi gen transgenik menghasilkan susu sapi lebih berkualitas",
+              "E. Menghasilkan insulin buatan"
+            ],
+            "correctAnswerIndex": 3,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Manfaat Biologi"
+        },
+        {
+            "questionId": "qu_fb_2",
+            "questionText": "Sekelompok peneliti melakukan pengamatan terhadap perilaku sekumpulan harimau Sumatera (Panthera tigris sumatrae). Tingkat organisasi kehidupan yang diamati adalah...",
+            "options": ["A. Ekosistem", "B. Komunitas", "C. Populasi", "D. Individu", "E. Bioma"],
+            "correctAnswerIndex": 2,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Organisasi Kehidupan"
+        },
+        {
+            "questionId": "qu_fb_3",
+            "questionText": "Seorang peneliti mengamati lingkungan X dan menemukan bahwa banyak bayi terlahir cacat akibat kekurangan gizi serta polusi logam berat. Bidang studi biologi yang mempelajari cacat perkembangan embrio ini adalah...",
+            "options": ["A. Parasitologi", "B. Ginekologi", "C. Teratologi", "D. Genetika", "E. Fisiologi"],
+            "correctAnswerIndex": 2,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Cabang Biologi"
+        },
+        {
+            "questionId": "qu_fb_4",
+            "questionText": "Dalam suatu langkah metode ilmiah, eksperimen atau percobaan dilakukan secara terkontrol untuk menguji...",
+            "options": ["A. Pengumpulan data", "B. Rumusan masalah", "C. Latar belakang", "D. Kesimpulan", "E. Hipotesis"],
+            "correctAnswerIndex": 4,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Metode Ilmiah"
+        },
+        {
+            "questionId": "qu_fb_5",
+            "questionText": "Perilaku yang benar, aman, dan menjaga keselamatan kerja saat berada di dalam laboratorium biologi adalah...",
+            "options": ["A. Membawa bekal makanan", "B. Mengenakan pakaian ketat", "C. Bersikap serius dan tekun", "D. Bersikap gembira dan bercanda", "E. Menggunakan seragam sekolah ketat"],
+            "correctAnswerIndex": 2,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Keselamatan Kerja"
+        },
+        {
+            "questionId": "qu_fb_6",
+            "questionText": "Jika Anda memasuki laboratorium dan melihat simbol botol pecah mengeluarkan cairan korosif, berarti zat tersebut bersifat...",
+            "options": ["A. Korosif", "B. Beracun", "C. Radioaktif", "D. Mudah meledak", "E. Mudah terbakar"],
+            "correctAnswerIndex": 0,
+            "type": "pilihan_ganda",
+            "correctAnswers": None,
+            "correctAnswerText": None,
+            "topicTag": "Keselamatan Kerja"
+        },
+        {
+            "questionId": "qu_fb_7",
+            "questionText": "Tentukan Benar (B) atau Salah (S) untuk pernyataan keselamatan kerja berikut:\n1. Membuang sisa limbah asam pekat langsung ke wastafel diperbolehkan.\n2. Selalu gunakan jas lab kancing lengkap saat berada di laboratorium.",
+            "options": [],
+            "correctAnswerIndex": None,
+            "type": "majemuk_kompleks",
+            "correctAnswers": [0, 1],
+            "correctAnswerText": None,
+            "topicTag": "Keselamatan Kerja"
+        },
+        {
+            "questionId": "qu_fb_8",
+            "questionText": "Tentukan Benar (B) atau Salah (S) untuk pernyataan tingkat organisasi kehidupan berikut:\n1. Kumpulan sel sejenis yang memiliki bentuk dan fungsi sama disebut jaringan.\n2. Tingkatan organisasi kehidupan tertinggi di biosfer adalah individu tunggal.",
+            "options": [],
+            "correctAnswerIndex": None,
+            "type": "majemuk_kompleks",
+            "correctAnswers": [1, 0],
+            "correctAnswerText": None,
+            "topicTag": "Organisasi Kehidupan"
+        },
+        {
+            "questionId": "qu_fb_9",
+            "questionText": "Langkah pertama dalam metode ilmiah setelah mengamati fenomena alam secara seksama adalah merumuskan...",
+            "options": [],
+            "correctAnswerIndex": None,
+            "type": "isian_singkat",
+            "correctAnswers": None,
+            "correctAnswerText": "masalah",
+            "topicTag": "Metode Ilmiah"
+        },
+        {
+            "questionId": "qu_fb_10",
+            "questionText": "Dugaan awal atau jawaban sementara yang diajukan peneliti terhadap rumusan masalah penelitian disebut...",
+            "options": [],
+            "correctAnswerIndex": None,
+            "type": "isian_singkat",
+            "correctAnswers": None,
+            "correctAnswerText": "hipotesis",
+            "topicTag": "Metode Ilmiah"
+        }
+    ]
         
     return {
         "summary": summary,
@@ -189,10 +230,27 @@ def analyze_material_with_gemini(text: str, filename: str = "document.pdf") -> d
         model = genai.GenerativeModel(
             model_name="gemini-2.0-flash",
             system_instruction=(
-                "Anda adalah asisten AI akademik yang ahli. Analisislah teks pelajaran yang diberikan. "
-                "Hasilkan ringkasan materi, daftar topik utama, 3 soal quick check, dan 10 soal kuis utama. "
-                "Semua pertanyaan kuis wajib memiliki tepat 4 opsi pilihan jawaban (A, B, C, D) "
-                "dengan indeks jawaban benar antara 0 sampai 3. Anda wajib mematuhi skema JSON yang ditentukan."
+                "Anda adalah asisten AI akademik ahli kurikulum nasional untuk platform e-learning adaptif SI-FOKUS.\n\n"
+                "=== KERANGKA KERJA PROMPT (TKFBC) ===\n"
+                "1. TUGAS (Task):\n"
+                "   - Ekstrak atau sadurlah pertanyaan-pertanyaan evaluasi, soal latihan, atau tes formatif beserta kunci jawabannya yang sudah tertulis di dalam dokumen asli (terutama di bagian akhir seperti bab EVALUASI/LATIHAN) secara persis ke dalam format JSON.\n"
+                "   - Jika tidak ada soal orisinal di dalam dokumen, buatlah soal kuis akademik baru secara mandiri berdasarkan materi.\n"
+                "   - Hasilkan juga ringkasan materi pelajaran yang komprehensif serta daftar topik utama.\n"
+                "2. KONTEKS (Context):\n"
+                "   - Hasil kuis ini akan langsung dikerjakan oleh siswa SMP/SMA di platform untuk verifikasi pemahaman belajar mereka.\n"
+                "3. FORMAT (Format):\n"
+                "   - Keluaran WAJIB berupa JSON murni yang sesuai dengan skema 'MaterialProcessResult'.\n"
+                "4. BATASAN (Constraints):\n"
+                "   - DILARANG KERAS menggunakan kalimat referensial dokumen (contoh yang DILARANG: 'Berdasarkan dokumen...', 'Sesuai modul ini...', 'Di dalam file ini...', atau referensi berkas sejenis). Soal harus langsung terfokus secara akademis.\n"
+                "   - Jumlah kata ringkasan maksimal 300 kata.\n"
+                "   - Tipe kuis terbagi menjadi 3 model:\n"
+                "     * 'pilihan_ganda': Pilihan ganda biasa dengan tepat 5 opsi jawaban (A, B, C, D, E).\n"
+                "     * 'majemuk_kompleks': Pernyataan Benar/Salah (diwakili list correctAnswers berisi 1 untuk Benar, 0 untuk Salah).\n"
+                "     * 'isian_singkat': Mengisi rumpang dengan jawaban teks singkat (diwakili correctAnswerText).\n"
+                "5. CONTOH (Example):\n"
+                "   - Pilihan Ganda (5 opsi): {'questionId': 'q1', 'questionText': 'Seseorang akan menjalani transplantasi hati. Hati dipelajari pada tingkat organisasi...', 'options': ['A. Sel', 'B. Jaringan', 'C. Organ', 'D. Sistem organ', 'E. Individu'], 'correctAnswerIndex': 2, 'type': 'pilihan_ganda', 'correctAnswers': None, 'correctAnswerText': None, 'topicTag': 'Organisasi Kehidupan'}\n"
+                "   - Majemuk Kompleks: {'questionId': 'q2', 'questionText': 'Tentukan Benar (B) atau Salah (S) untuk pernyataan keselamatan kerja berikut:\\n1. Jas lab digunakan saat praktikum.\\n2. Zat korosif aman disentuh tangan langsung.', 'options': [], 'correctAnswerIndex': None, 'type': 'majemuk_kompleks', 'correctAnswers': [1, 0], 'correctAnswerText': None, 'topicTag': 'Keselamatan Kerja'}\n"
+                "   - Isian Singkat: {'questionId': 'q3', 'questionText': 'Langkah pertama dalam metode ilmiah setelah mengamati masalah adalah merumuskan...', 'options': [], 'correctAnswerIndex': None, 'type': 'isian_singkat', 'correctAnswers': None, 'correctAnswerText': 'masalah', 'topicTag': 'Metode Ilmiah'}"
             )
         )
 
@@ -203,7 +261,7 @@ def analyze_material_with_gemini(text: str, filename: str = "document.pdf") -> d
             generation_config=genai.types.GenerationConfig(
                 response_mime_type="application/json",
                 response_schema=MaterialProcessResult,
-                temperature=0.2,
+                temperature=0.15,
             )
         )
 
@@ -571,3 +629,46 @@ def get_dummy_narrative(target_role: str) -> str:
             "Jangan membaca terlalu cepat ya, cobalah ambil jeda istirahat 5 menit agar fokusmu tetap terjaga. Kamu pasti bisa!"
         )
 
+def generate_single_question_with_gemini(text: str, filename: str, question_type: str) -> dict:
+    """Generates a single question of a specific type ('pilihan_ganda', 'majemuk_kompleks', 'isian_singkat') based on the text."""
+    if not GEMINI_API_KEY:
+        fallback_res = generate_dynamic_fallback(text, filename)
+        for q in fallback_res["quiz_utama"]:
+            if q["type"] == question_type:
+                return q
+        return fallback_res["quick_check"][0]
+
+    try:
+        model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            system_instruction=(
+                "Anda adalah asisten AI akademik yang ahli. Buatlah tepat SATU soal kuis yang valid secara akademik berdasarkan teks materi yang diberikan.\n"
+                "Format output WAJIB mematuhi skema JSON dari QuestionSchema."
+            )
+        )
+
+        prompt = f"""
+        Buatlah satu soal bertipe: '{question_type}' berdasarkan materi pelajaran berikut.
+        Jangan merujuk dokumen secara langsung (hindari kalimat seperti 'Berdasarkan dokumen...').
+        
+        Materi:
+        {text}
+        """
+
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                response_mime_type="application/json",
+                response_schema=QuestionSchema,
+                temperature=0.3,
+            )
+        )
+
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Warning: Gagal membuat single question ({e}). Menjalankan fallback...")
+        fallback_res = generate_dynamic_fallback(text, filename)
+        for q in fallback_res["quiz_utama"]:
+            if q["type"] == question_type:
+                return q
+        return fallback_res["quick_check"][0]

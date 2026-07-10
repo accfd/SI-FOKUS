@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from typing import List
 from parser import extract_text
-from gemini_service import analyze_material_with_gemini, diagnose_competency_with_gemini, generate_recommendations_with_gemini, predict_talent_with_gemini, generate_narrative_report
+from gemini_service import analyze_material_with_gemini, diagnose_competency_with_gemini, generate_recommendations_with_gemini, predict_talent_with_gemini, generate_narrative_report, generate_single_question_with_gemini
 from firestore_service import get_db
 
 app = FastAPI(
@@ -361,6 +361,66 @@ async def predict_talent(request: PredictTalentRequest):
             "recommendation_id": "failed_to_save",
             **prediction
         }
+
+class GenerateSingleQuestionRequest(BaseModel):
+    file_url: str = Field(description="URL berkas dokumen (.pdf, .docx, .pptx) yang akan diproses")
+    question_type: str = Field(description="Tipe soal: 'pilihan_ganda' | 'majemuk_kompleks' | 'isian_singkat'")
+
+@app.post("/api/generate-single-question", status_code=status.HTTP_200_OK)
+async def generate_single_question(request: GenerateSingleQuestionRequest):
+    """
+    Endpoint untuk menghasilkan satu soal tertentu berdasarkan tipe soal menggunakan Gemini.
+    """
+    file_url = request.file_url
+    question_type = request.question_type
+    file_name = file_url.split("/")[-1]
+
+    # 1. Coba baca secara lokal terlebih dahulu
+    local_path = os.path.join("..", "web", file_url)
+    if os.path.exists(local_path):
+        try:
+            with open(local_path, "rb") as f:
+                file_bytes = f.read()
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Gagal membaca file lokal: {e}"
+            )
+    else:
+        # Coba unduh via HTTP
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(file_url)
+                if response.status_code != 200:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Gagal mengunduh berkas dari URL: {file_url}"
+                    )
+                file_bytes = response.content
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Gagal menghubungi server untuk mengunduh berkas: {e}"
+            )
+
+    # 2. Ekstraksi teks
+    try:
+        extracted_text = extract_text(file_bytes, file_name)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Gagal mengekstrak teks dari berkas: {e}"
+        )
+
+    # 3. Generate question
+    try:
+        question_data = generate_single_question_with_gemini(extracted_text, file_name, question_type)
+        return question_data
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Gagal menghasilkan soal via Gemini: {e}"
+        )
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,10 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/analytics_model.dart';
 import '../../bloc/analytics/analytics_bloc.dart';
 import '../../bloc/analytics/analytics_event.dart';
 import '../../bloc/analytics/analytics_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class LearningAnalyticsPage extends StatefulWidget {
   final String classId;
@@ -33,8 +36,9 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analisis Tren Belajar Kelas'),
+      backgroundColor: AppColors.backgroundLight,
+      appBar: const SharedAppBar(
+        title: 'Analisis Tren Belajar Kelas',
       ),
       body: BlocBuilder<AnalyticsBloc, AnalyticsState>(
         builder: (context, state) {
@@ -100,22 +104,16 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
   }
 
   Widget _buildTimeRangeFilter(ThemeData theme) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildFilterButton('7 Hari', '7', theme),
-            _buildFilterButton('30 Hari', '30', theme),
-            _buildFilterButton('Semua', 'all', theme),
-          ],
-        ),
+    return SharedCard(
+      borderRadius: 12,
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildFilterButton('7 Hari', '7', theme),
+          _buildFilterButton('30 Hari', '30', theme),
+          _buildFilterButton('Semua', 'all', theme),
+        ],
       ),
     );
   }
@@ -124,8 +122,8 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
     final isSelected = _timeRange == value;
     return TextButton(
       style: TextButton.styleFrom(
-        backgroundColor: isSelected ? theme.colorScheme.primary : Colors.transparent,
-        foregroundColor: isSelected ? Colors.white : theme.colorScheme.primary,
+        backgroundColor: isSelected ? AppColors.primaryLight : Colors.transparent,
+        foregroundColor: isSelected ? Colors.white : AppColors.primaryLight,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
@@ -136,7 +134,7 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
       },
       child: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12),
       ),
     );
   }
@@ -149,28 +147,22 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
   }
 
   Widget _buildQuizTrendLineChart(ThemeData theme, List<QuizTrendPoint> trends) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.trending_up_rounded, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Perkembangan Nilai Kuis Kelas',
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+    return SharedCard(
+      borderRadius: 20,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.trending_up_rounded, color: AppColors.primaryLight),
+              const SizedBox(width: 8),
+              Text(
+                'Perkembangan Nilai Kuis Kelas',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimaryLight),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
             const Text(
               'Menyajikan grafik perkembangan nilai kuis rata-rata seluruh siswa kelas.',
               style: TextStyle(color: Colors.grey, fontSize: 12),
@@ -230,13 +222,13 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
                               return FlSpot(idx.toDouble(), trends[idx].averageScore);
                             }),
                             isCurved: true,
-                            color: theme.colorScheme.primary,
+                            color: AppColors.primaryLight,
                             barWidth: 4,
                             isStrokeCapRound: true,
                             dotData: const FlDotData(show: true),
                             belowBarData: BarAreaData(
                               show: true,
-                              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                              color: AppColors.primaryLight.withValues(alpha: 0.1),
                             ),
                           ),
                         ],
@@ -245,32 +237,25 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildCorrelationSection(ThemeData theme, List<ModuleReadingStat> stats) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.query_stats_rounded, color: theme.colorScheme.secondary),
-                const SizedBox(width: 8),
-                Text(
-                  'Korelasi Membaca vs Nilai Kuis',
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
+    return SharedCard(
+      borderRadius: 20,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.query_stats_rounded, color: AppColors.primaryLight),
+              const SizedBox(width: 8),
+              Text(
+                'Korelasi Membaca vs Nilai Kuis',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimaryLight),
+              ),
+            ],
+          ),
             const SizedBox(height: 8),
             const Text(
               'Perbandingan rata-rata menit belajar siswa membaca materi dengan skor kuis yang diperoleh.',
@@ -302,8 +287,8 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
                               value: stat.avgReadingMinutes / 60.0,
                               minHeight: 8,
                               borderRadius: BorderRadius.circular(4),
-                              color: theme.colorScheme.secondary,
-                              backgroundColor: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                              color: AppColors.primaryLight,
+                              backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -326,8 +311,8 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
                               value: stat.avgQuizScore / 100.0,
                               minHeight: 8,
                               borderRadius: BorderRadius.circular(4),
-                              color: theme.colorScheme.primary,
-                              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                              color: AppColors.primaryLight,
+                              backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -346,8 +331,7 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildStudentListSection(ThemeData theme, List<StudentAnalyticsSummary> students) {
@@ -356,16 +340,13 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
       children: [
         Text(
           'Perkembangan Individu Siswa',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimaryLight),
         ),
         const SizedBox(height: 12),
 
-        TextFormField(
-          decoration: const InputDecoration(
-            hintText: 'Cari Nama Siswa...',
-            prefixIcon: Icon(Icons.search_rounded),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
+        SharedInput(
+          labelText: 'Cari Nama Siswa...',
+          prefixIcon: Icons.search_rounded,
           onChanged: (val) {
             setState(() {
               _searchQuery = val;
@@ -375,7 +356,8 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
         const SizedBox(height: 16),
 
         if (students.isEmpty) ...[
-          const Card(
+          const SharedCard(
+            borderRadius: 16,
             child: Padding(
               padding: EdgeInsets.all(32.0),
               child: Center(child: Text('Tidak ada siswa yang cocok.')),
@@ -388,18 +370,15 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
             itemCount: students.length,
             itemBuilder: (context, index) {
               final student = students[index];
-              return Card(
+              return SharedCard(
                 margin: const EdgeInsets.only(bottom: 12),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.grey.shade200),
-                ),
+                padding: EdgeInsets.zero,
+                borderRadius: 16,
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   leading: CircleAvatar(
-                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.05),
-                    child: Icon(Icons.person_outline_rounded, color: theme.colorScheme.primary),
+                    backgroundColor: AppColors.primaryLight.withValues(alpha: 0.05),
+                    child: const Icon(Icons.person_outline_rounded, color: AppColors.primaryLight),
                   ),
                   title: Text(
                     student.studentName,
@@ -419,8 +398,8 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: student.avgQuizScore >= 75
-                              ? theme.colorScheme.secondary
-                              : Colors.orange.shade800,
+                              ? AppColors.primaryLight
+                              : AppColors.accentLight,
                         ),
                       ),
                       const Text(

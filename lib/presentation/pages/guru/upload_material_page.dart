@@ -2,18 +2,24 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/material_model.dart';
 import '../../../domain/repositories/material_repository.dart';
 import '../../bloc/material/material_bloc.dart';
 import '../../bloc/material/material_event.dart';
 import '../../bloc/material/material_state.dart';
+import '../siswa/pdf_viewer_page.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class UploadMaterialPage extends StatefulWidget {
   final String classId;
+  final String? initialMaterialId;
 
   const UploadMaterialPage({
     super.key,
     required this.classId,
+    this.initialMaterialId,
   });
 
   @override
@@ -26,7 +32,13 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
   
   PlatformFile? _selectedFile;
   String? _uploadedMaterialId;
-  bool _isPublishing = false;
+  bool? _isPublishing;
+
+  @override
+  void initState() {
+    super.initState();
+    _uploadedMaterialId = widget.initialMaterialId;
+  }
 
   @override
   void dispose() {
@@ -99,8 +111,9 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tambah Materi Pintar'),
+      backgroundColor: AppColors.backgroundLight,
+      appBar: const SharedAppBar(
+        title: 'Materi Pembelajaran Pintar',
       ),
       body: BlocConsumer<MaterialBloc, MaterialBlocState>(
         listener: (context, state) {
@@ -141,7 +154,7 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
                       children: [
                         Text(
                           'Pilih Dokumen Pembelajaran',
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimaryLight),
                         ),
                         const SizedBox(height: 8),
                         const Text(
@@ -155,13 +168,11 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
                         const SizedBox(height: 24),
                         
                         // Title Input
-                        TextFormField(
+                        SharedInput(
                           controller: _titleController,
-                          decoration: const InputDecoration(
-                            labelText: 'Judul Materi',
-                            prefixIcon: Icon(Icons.title_rounded),
-                            hintText: 'Misal: Bab 1 Aljabar Linear',
-                          ),
+                          labelText: 'Judul Materi',
+                          prefixIcon: Icons.title_rounded,
+                          hintText: 'Misal: Bab 1 Aljabar Linear',
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Judul materi tidak boleh kosong';
@@ -175,10 +186,10 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
                         if (state is MaterialUploadProgress) ...[
                           _buildUploadProgressIndicator(theme, state.progress),
                         ] else ...[
-                          ElevatedButton.icon(
-                            onPressed: _selectedFile == null ? null : _onUpload,
-                            icon: const Icon(Icons.cloud_upload_rounded, color: Colors.white),
-                            label: const Text('Mulai Unggah Materi'),
+                          SharedButton(
+                            onPressed: _selectedFile == null ? () {} : _onUpload,
+                            icon: Icons.cloud_upload_rounded,
+                            text: 'Mulai Unggah Materi',
                           ),
                         ],
                       ],
@@ -197,16 +208,14 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
   }
 
   Widget _buildFilePickerArea(ThemeData theme) {
-    return Card(
-      elevation: 0,
-      color: theme.colorScheme.primary.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: theme.colorScheme.primary.withValues(alpha: 0.15),
-          style: BorderStyle.solid,
-          width: 2,
-        ),
+    return SharedCard(
+      padding: EdgeInsets.zero,
+      borderRadius: 20,
+      color: AppColors.primaryLight.withValues(alpha: 0.05),
+      border: Border.all(
+        color: AppColors.primaryLight.withValues(alpha: 0.15),
+        style: BorderStyle.solid,
+        width: 2,
       ),
       child: InkWell(
         onTap: _pickFile,
@@ -263,13 +272,9 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
   }
 
   Widget _buildUploadProgressIndicator(ThemeData theme, double progress) {
-    return Container(
+    return SharedCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      borderRadius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -309,26 +314,24 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
 
         final material = snapshot.data!;
         final hasSummary = material.summary != null && material.summary!.trim().isNotEmpty;
+        _isPublishing ??= material.isPublished;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Status Card
-            Card(
-              elevation: 0,
+            SharedCard(
               color: hasSummary
-                  ? theme.colorScheme.secondary.withValues(alpha: 0.08)
-                  : theme.colorScheme.primary.withValues(alpha: 0.08),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: hasSummary
-                      ? theme.colorScheme.secondary.withValues(alpha: 0.2)
-                      : theme.colorScheme.primary.withValues(alpha: 0.2),
-                ),
+                  ? AppColors.primaryLight.withValues(alpha: 0.08)
+                  : AppColors.primaryLight.withValues(alpha: 0.08),
+              borderRadius: 16,
+              border: Border.all(
+                color: hasSummary
+                    ? AppColors.primaryLight.withValues(alpha: 0.2)
+                    : AppColors.primaryLight.withValues(alpha: 0.2),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
                     Icon(
@@ -376,13 +379,9 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
             // Summary View
             if (!hasSummary) ...[
               // LOADING SUMMARY STATE
-              Container(
+              SharedCard(
                 padding: const EdgeInsets.symmetric(vertical: 60),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
+                borderRadius: 16,
                 child: Column(
                   children: [
                     const SizedBox(
@@ -408,13 +407,9 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
               ),
             ] else ...[
               // SUMMARY LOADED CARD
-              Card(
-                elevation: 2,
-                shadowColor: Colors.black.withValues(alpha: 0.05),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
+              SharedCard(
+                borderRadius: 16,
+                child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
@@ -435,90 +430,86 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            const SizedBox(height: 24),
+
+            SharedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PdfViewerPage(material: material),
+                  ),
+                );
+              },
+              icon: Icons.picture_as_pdf_rounded,
+              text: 'Buka / Lihat Dokumen PDF Modul',
+              backgroundColor: AppColors.error,
+            ),
             const SizedBox(height: 24),
 
             // AI Assessment Options (F-03)
             if (hasSummary) ...[
               Text(
                 'AI Assessment Generator',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimaryLight),
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(48),
-                      ),
+                    child: SharedButton(
                       onPressed: () {
                         context.push('/dashboard/guru/class/${widget.classId}/material/${material.materialId}/assessment/quick_check');
                       },
-                      icon: const Icon(Icons.flash_on_rounded),
-                      label: const Text('Quick Check', style: TextStyle(fontSize: 12)),
+                      icon: Icons.flash_on_rounded,
+                      text: 'Quick Check',
+                      backgroundColor: AppColors.primaryLight,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.tertiary,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(48),
-                      ),
+                    child: SharedButton(
                       onPressed: () {
                         context.push('/dashboard/guru/class/${widget.classId}/material/${material.materialId}/assessment/quiz_utama');
                       },
-                      icon: const Icon(Icons.assignment_rounded),
-                      label: const Text('Kuis Utama', style: TextStyle(fontSize: 12)),
+                      icon: Icons.assignment_rounded,
+                      text: 'Kuis Utama',
+                      backgroundColor: AppColors.accentLight,
+                      foregroundColor: AppColors.textPrimaryLight,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.secondary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(48),
-                ),
+              SharedButton(
                 onPressed: () {
                   context.push('/dashboard/guru/class/${widget.classId}/material/${material.materialId}/intervention');
                 },
-                icon: const Icon(Icons.lightbulb_rounded),
-                label: const Text('Lihat Rekomendasi Intervensi Belajar AI'),
+                icon: Icons.lightbulb_rounded,
+                text: 'Lihat Rekomendasi Intervensi AI',
+                backgroundColor: AppColors.secondaryLight,
               ),
               const SizedBox(height: 12),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HSLColor.fromAHSL(1.0, 165, 0.80, 0.38).toColor(),
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(48),
-                ),
+              SharedButton(
                 onPressed: () {
                   context.push('/dashboard/guru/class/${widget.classId}/material/${material.materialId}/resources');
                 },
-                icon: const Icon(Icons.library_books_rounded),
-                label: const Text('Kelola Sumber Belajar Tambahan'),
+                icon: Icons.library_books_rounded,
+                text: 'Kelola Sumber Belajar Tambahan',
+                backgroundColor: AppColors.primaryLight,
               ),
               const SizedBox(height: 24),
             ],
 
-            // Publish Toggle Switch
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(color: Colors.grey.shade200),
-              ),
+            SharedCard(
+              borderRadius: 14,
+              padding: EdgeInsets.zero,
               child: SwitchListTile(
-                title: const Text('Publikasikan ke Siswa', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Jika aktif, siswa dapat mengakses modul ini di dasbor mereka.'),
-                value: _isPublishing,
+                title: Text('Publikasikan ke Siswa', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                subtitle: Text('Jika aktif, siswa dapat mengakses modul ini di dasbor mereka.', style: GoogleFonts.outfit(fontSize: 12)),
+                activeColor: AppColors.primaryLight,
+                value: _isPublishing ?? false,
                 onChanged: (value) {
                   setState(() {
                     _isPublishing = value;

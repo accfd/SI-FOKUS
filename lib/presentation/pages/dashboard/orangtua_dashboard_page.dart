@@ -9,6 +9,8 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/parent_monitoring/parent_monitoring_bloc.dart';
 import '../../bloc/parent_monitoring/parent_monitoring_event.dart';
 import '../../bloc/parent_monitoring/parent_monitoring_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../widgets/shared_ui_kit.dart';
 
 class OrangTuaDashboardPage extends StatelessWidget {
   const OrangTuaDashboardPage({super.key});
@@ -36,29 +38,19 @@ class _OrangTuaDashboardView extends StatelessWidget {
   const _OrangTuaDashboardView();
 
   // ── Palette warna menenangkan untuk orang tua ──
-  static const Color _primary = Color(0xFF2E7D6F);      // Teal hijau tenang
-  static const Color _primaryDark = Color(0xFF1B5E50);   // Teal gelap
-  static const Color _surface = Color(0xFFF5FAF8);        // Off-white kehijauan
-  static const Color _cardBg = Colors.white;
-  static const Color _textPrimary = Color(0xFF1A3C34);
-  static const Color _textSecondary = Color(0xFF5F7B74);
+  static const Color _primary = AppColors.primaryLight;      // Teal hijau tenang
+  static const Color _primaryDark = AppColors.secondaryLight;   // Teal gelap
+  static const Color _surface = AppColors.backgroundLight;        // Off-white kehijauan
+  static const Color _cardBg = AppColors.cardLight;
+  static const Color _textPrimary = AppColors.textPrimaryLight;
+  static const Color _textSecondary = AppColors.textSecondaryLight;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _surface,
-      appBar: AppBar(
-        title: Text(
-          'SI-FOKUS Orang Tua',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: _primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      appBar: SharedAppBar(
+        title: 'SI-FOKUS Orang Tua',
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
@@ -335,19 +327,10 @@ class _OrangTuaDashboardView extends StatelessWidget {
     required Color color,
     required String subtitle,
   }) {
-    return Container(
+    return SharedCard(
+      color: _cardBg,
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -439,19 +422,10 @@ class _OrangTuaDashboardView extends StatelessWidget {
         return InkWell(
           onTap: item.onTap,
           borderRadius: BorderRadius.circular(18),
-          child: Container(
+          child: SharedCard(
+            color: _cardBg,
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _cardBg,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            borderRadius: 18,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -510,20 +484,11 @@ class _OrangTuaDashboardView extends StatelessWidget {
         final readMin = ((activity['readDurationSec'] as num?) ?? 0) ~/ 60;
         final title = activity['materialTitle'] as String? ?? 'Materi';
 
-        return Container(
+        return SharedCard(
+          color: _cardBg,
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _cardBg,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
+          borderRadius: 14,
           child: Row(
             children: [
               // Indikator fokus
@@ -601,25 +566,16 @@ class _OrangTuaDashboardView extends StatelessWidget {
         final typeLabel = type == 'quiz_utama' ? 'Kuis Utama' : 'Quick Check';
         final scorePercent = total > 0 ? ((score / total) * 100).toInt() : 0;
 
-        return Container(
+        return SharedCard(
+          color: _cardBg,
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _cardBg,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: passed
-                  ? const Color(0xFF43A047).withOpacity(0.3)
-                  : Colors.red.shade200,
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
+          borderRadius: 14,
+          border: Border.all(
+            color: passed
+                ? const Color(0xFF43A047).withOpacity(0.3)
+                : Colors.red.shade200,
+            width: 1,
           ),
           child: Row(
             children: [
@@ -736,13 +692,11 @@ class _OrangTuaDashboardView extends StatelessWidget {
   }
 
   Widget _buildEmptyCard(String message) {
-    return Container(
+    return SharedCard(
+      color: _cardBg,
       width: double.infinity,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(14),
-      ),
+      borderRadius: 14,
       child: Text(
         message,
         textAlign: TextAlign.center,

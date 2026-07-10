@@ -11,6 +11,8 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/quick_check/quick_check_bloc.dart';
 import '../../bloc/quick_check/quick_check_event.dart';
 import '../../bloc/quick_check/quick_check_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 // Catatan: Pastikan package 'lottie' sudah ditambahkan di pubspec.yaml
 // import 'package:lottie/lottie.dart';
@@ -30,7 +32,7 @@ class QuickCheckPage extends StatefulWidget {
 }
 
 class _QuickCheckPageState extends State<QuickCheckPage> {
-  final Map<String, int> _selectedAnswers = {};
+  final Map<String, dynamic> _selectedAnswers = {};
   Timer? _countdownTimer;
   Duration _remainingCooldown = Duration.zero;
 
@@ -103,17 +105,11 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: Text(
-          widget.assessmentType == 'quiz_utama'
-              ? 'Kuis Utama: ${widget.material.title}'
-              : 'Quick Check: ${widget.material.title}',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 18, color: Colors.white),
-        ),
-        backgroundColor: Colors.indigo.shade900,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      backgroundColor: AppColors.backgroundLight,
+      appBar: SharedAppBar(
+        title: widget.assessmentType == 'quiz_utama'
+            ? 'Kuis Utama: ${widget.material.title}'
+            : 'Quick Check: ${widget.material.title}',
       ),
       body: BlocConsumer<QuickCheckBloc, QuickCheckState>(
         listener: (context, state) {
@@ -147,6 +143,15 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
           }
 
           if (state is QuickCheckReady) {
+            for (var q in state.questions) {
+              if (!_selectedAnswers.containsKey(q.questionId)) {
+                if (q.type == 'majemuk_kompleks') {
+                  _selectedAnswers[q.questionId] = [1, 1, 1];
+                } else if (q.type == 'isian_singkat') {
+                  _selectedAnswers[q.questionId] = '';
+                }
+              }
+            }
             return _buildQuizView(state);
           }
 
@@ -162,11 +167,11 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
         Container(
           padding: const EdgeInsets.all(16),
           width: double.infinity,
-          color: Colors.indigo.shade50,
+          color: AppColors.primaryLight.withValues(alpha: 0.1),
           child: Text(
             'Jawab 3 pertanyaan berikut untuk memverifikasi pemahaman Anda.\nMinimal Benar: 2',
             style: GoogleFonts.outfit(
-              color: Colors.indigo.shade800,
+              color: AppColors.primaryLight,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -178,16 +183,9 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
             itemCount: state.questions.length,
             itemBuilder: (context, index) {
               final q = state.questions[index];
-              return Card(
-                elevation: 0,
-                margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.grey.shade200),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
+              return SharedCard(
+                borderRadius: 16,
+                child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -198,28 +196,179 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      ...List.generate(q.options.length, (optIndex) {
-                        return RadioListTile<int>(
-                          title: Text(
-                            q.options[optIndex],
-                            style: GoogleFonts.outfit(),
-                          ),
-                          value: optIndex,
-                          groupValue: _selectedAnswers[q.questionId],
+                      if (q.type == 'majemuk_kompleks') ...[
+                        ...List.generate(q.options.length, (stmtIndex) {
+                          final List<int> currentAnswers = (_selectedAnswers[q.questionId] is List<int>)
+                              ? (_selectedAnswers[q.questionId] as List<int>)
+                              : [1, 1, 1];
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12.0),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.grey.shade200),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.02),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                )
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                  Text(
+                                    'Pernyataan #${stmtIndex + 1}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryLight,
+                                    ),
+                                  ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  q.options[stmtIndex],
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 14,
+                                    height: 1.4,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            final newList = List<int>.from(currentAnswers);
+                                            newList[stmtIndex] = 1;
+                                            _selectedAnswers[q.questionId] = newList;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          decoration: BoxDecoration(
+                                            color: currentAnswers[stmtIndex] == 1
+                                                ? AppColors.primaryLight
+                                                : Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(
+                                              color: currentAnswers[stmtIndex] == 1
+                                                  ? AppColors.primaryLight
+                                                  : Colors.grey.shade300,
+                                            ),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            'Benar (Ya)',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: currentAnswers[stmtIndex] == 1
+                                                  ? Colors.white
+                                                  : Colors.grey.shade700,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            final newList = List<int>.from(currentAnswers);
+                                            newList[stmtIndex] = 0;
+                                            _selectedAnswers[q.questionId] = newList;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          decoration: BoxDecoration(
+                                            color: currentAnswers[stmtIndex] == 0
+                                                ? AppColors.error
+                                                : Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(
+                                              color: currentAnswers[stmtIndex] == 0
+                                                  ? AppColors.error
+                                                  : Colors.grey.shade300,
+                                            ),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            'Salah (Tidak)',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: currentAnswers[stmtIndex] == 0
+                                                  ? Colors.white
+                                                  : Colors.grey.shade700,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ] else if (q.type == 'isian_singkat') ...[
+                        TextFormField(
+                          key: ValueKey('student_is_${q.questionId}'),
+                             decoration: InputDecoration(
+                              hintText: 'Tulis jawaban Anda di sini...',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: AppColors.primaryLight.withValues(alpha: 0.3)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: AppColors.primaryLight),
+                              ),
+                            ),
                           onChanged: (val) {
                             setState(() {
-                              if (val != null) {
-                                _selectedAnswers[q.questionId] = val;
-                              }
+                              _selectedAnswers[q.questionId] = val;
                             });
                           },
-                          activeColor: Colors.indigo,
-                          contentPadding: EdgeInsets.zero,
-                        );
-                      }),
+                        ),
+                      ] else ...[
+                        ...List.generate(q.options.length, (optIndex) {
+                          return RadioListTile<int>(
+                            title: Text(
+                              q.options[optIndex],
+                              style: GoogleFonts.outfit(),
+                            ),
+                            value: optIndex,
+                            groupValue: _selectedAnswers[q.questionId] is int 
+                                ? (_selectedAnswers[q.questionId] as int) 
+                                : null,
+                            onChanged: (val) {
+                              setState(() {
+                                if (val != null) {
+                                  _selectedAnswers[q.questionId] = val;
+                                }
+                              });
+                            },
+                            activeColor: AppColors.primaryLight,
+                            contentPadding: EdgeInsets.zero,
+                          );
+                        }),
+                      ]
                     ],
                   ),
-                ),
               );
             },
           ),
@@ -227,38 +376,15 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
+            color: AppColors.backgroundLight,
+            border: Border(top: BorderSide(color: Colors.grey.shade200)),
           ),
           child: SafeArea(
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _selectedAnswers.length == state.questions.length
-                    ? _submitAnswers
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  'Kirim Jawaban',
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+            child: SharedButton(
+              onPressed: _selectedAnswers.length == state.questions.length
+                  ? _submitAnswers
+                  : () {},
+              text: 'Kirim Jawaban',
             ),
           ),
         ),
@@ -286,7 +412,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
               style: GoogleFonts.outfit(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.indigo.shade900,
+                color: AppColors.textPrimaryLight,
               ),
               textAlign: TextAlign.center,
             ),
@@ -303,16 +429,16 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
+                color: AppColors.accentLight.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.orange.shade200),
+                border: Border.all(color: AppColors.accentLight.withValues(alpha: 0.2)),
               ),
               child: Text(
                 _formatDuration(_remainingCooldown),
                 style: GoogleFonts.outfit(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange.shade800,
+                  color: AppColors.accentLight,
                   letterSpacing: 2,
                 ),
               ),
@@ -320,21 +446,21 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
-              height: 50,
               child: OutlinedButton(
                 onPressed: () => context.pop(), // Kembali ke halaman materi
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.indigo.shade600),
+                  side: const BorderSide(color: AppColors.primaryLight),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(16),
                   ),
+                  minimumSize: const Size.fromHeight(50),
                 ),
                 child: Text(
                   'Kembali Membaca Materi',
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.indigo.shade600,
+                    color: AppColors.primaryLight,
                   ),
                 ),
               ),
@@ -370,7 +496,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
               style: GoogleFonts.outfit(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.indigo.shade900,
+                color: AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: 12),
@@ -385,44 +511,27 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (widget.assessmentType == 'quick_check') {
-                    // Navigate to Main Quiz
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BlocProvider(
-                          create: (context) => QuickCheckBloc(),
-                          child: QuickCheckPage(
-                            material: widget.material,
-                            assessmentType: 'quiz_utama',
-                          ),
+            SharedButton(
+              onPressed: () {
+                if (widget.assessmentType == 'quick_check') {
+                  // Navigate to Main Quiz
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BlocProvider(
+                        create: (context) => QuickCheckBloc(),
+                        child: QuickCheckPage(
+                          material: widget.material,
+                          assessmentType: 'quiz_utama',
                         ),
                       ),
-                    );
-                  } else {
-                    Navigator.of(context).pop(); // Kembali ke dashboard
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  widget.assessmentType == 'quiz_utama' ? 'Kembali ke Dashboard' : 'Mulai Kuis Utama',
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+                    ),
+                  );
+                } else {
+                  Navigator.of(context).pop(); // Kembali ke dashboard
+                }
+              },
+              text: widget.assessmentType == 'quiz_utama' ? 'Kembali ke Dashboard' : 'Mulai Kuis Utama',
             ),
           ],
         ),

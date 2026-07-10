@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../bloc/talent_report/talent_report_bloc.dart';
 import '../../bloc/talent_report/talent_report_event.dart';
 import '../../bloc/talent_report/talent_report_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../widgets/shared_ui_kit.dart';
 
 class TalentReportPage extends StatelessWidget {
   const TalentReportPage({super.key});
@@ -23,30 +25,20 @@ class _TalentReportView extends StatelessWidget {
   const _TalentReportView();
 
   // ── Palette Warna Menenangkan ──
-  static const Color _primary = Color(0xFF2E7D6F);
-  static const Color _primaryDark = Color(0xFF1B5E50);
-  static const Color _surface = Color(0xFFF5FAF8);
-  static const Color _cardBg = Colors.white;
-  static const Color _textPrimary = Color(0xFF1A3C34);
-  static const Color _textSecondary = Color(0xFF5F7B74);
-  static const Color _goldAccent = Color(0xFFFFB300);
+  static const Color _primary = AppColors.primaryLight;
+  static const Color _primaryDark = AppColors.secondaryLight;
+  static const Color _surface = AppColors.backgroundLight;
+  static const Color _cardBg = AppColors.cardLight;
+  static const Color _textPrimary = AppColors.textPrimaryLight;
+  static const Color _textSecondary = AppColors.textSecondaryLight;
+  static const Color _goldAccent = AppColors.accentLight;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _surface,
-      appBar: AppBar(
-        title: Text(
-          'Potensi & Bakat Anak',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: _primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      appBar: const SharedAppBar(
+        title: 'Potensi & Bakat Anak',
       ),
       body: BlocBuilder<TalentReportBloc, TalentReportState>(
         builder: (context, state) {
@@ -161,19 +153,10 @@ class _TalentReportView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
+          SharedCard(
+            color: _cardBg,
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: _cardBg,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            borderRadius: 20,
             child: Text(
               recommendation.reasoning,
               style: GoogleFonts.outfit(
@@ -197,20 +180,11 @@ class _TalentReportView extends StatelessWidget {
           const SizedBox(height: 12),
           Column(
             children: recommendation.recommendedCompetitions.map((comp) {
-              return Container(
+              return SharedCard(
+                color: _cardBg,
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: _cardBg,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
+                borderRadius: 16,
                 child: Row(
                   children: [
                     Container(
@@ -253,19 +227,10 @@ class _TalentReportView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
+          SharedCard(
+            color: _cardBg,
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: _cardBg,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            borderRadius: 20,
             child: Column(
               children: recommendation.supportSteps.map((step) {
                 return Padding(

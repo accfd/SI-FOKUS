@@ -23,7 +23,7 @@ class LoadQuickCheck extends QuickCheckEvent {
 }
 
 class SubmitQuickCheck extends QuickCheckEvent {
-  final Map<String, int> answers; // questionId -> selectedOptionIndex
+  final Map<String, dynamic> answers; // questionId -> selectedOptionIndex (int) / list (List<int>) / text (String)
   
   const SubmitQuickCheck({required this.answers});
 

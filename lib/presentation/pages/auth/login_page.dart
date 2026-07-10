@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import '../../../data/repositories/seeder.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,6 +20,78 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isSeeding = false;
+
+  void _onSeedData() async {
+    setState(() {
+      _isSeeding = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+            ),
+            SizedBox(width: 16),
+            Expanded(child: Text('Mengunggah 35 siswa & 6 modul biologi ke Firebase...')),
+          ],
+        ),
+        duration: Duration(minutes: 2),
+      ),
+    );
+
+    try {
+      await DatabaseSeeder.seedAll();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).clearSnackBars();
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.green),
+              SizedBox(width: 8),
+              Text('Sukses!'),
+            ],
+          ),
+          content: const Text(
+            'Data 35 Siswa, 1 Guru, dan 6 Modul Biologi (KD 3.1 - 3.6) telah berhasil disimpan ke Cloud Firestore Anda!\n\n'
+            'Silakan masuk menggunakan akun berikut:\n'
+            '• Guru: guru@sifokus.sch.id / 123456\n'
+            '• Siswa: siswa@sifokus.sch.id / 123456\n'
+            '• Orang Tua: ortu@sifokus.sch.id / 123456'
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal seeding database: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSeeding = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -255,28 +329,47 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 child: const Text('Belum punya akun? Register'),
                               ),
-                              
-                              // Quick testing options (in case Firebase is not connected yet)
-                              const SizedBox(height: 24),
-                              const Divider(),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Akses Cepat Pengujian (Offline/Mock)',
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                              if (kDebugMode) ...[
+                                const SizedBox(height: 16),
+                                // Seed Data Button
+                                ElevatedButton.icon(
+                                  onPressed: _isSeeding ? null : _onSeedData,
+                                  icon: const Icon(Icons.cloud_upload_rounded),
+                                  label: const Text('Seed 35 Siswa & 6 Modul ke Firebase'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    foregroundColor: Colors.white,
+                                    minimumSize: const Size.fromHeight(52),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _quickRoleButton(context, 'Guru', '/dashboard/guru', theme.colorScheme.secondary),
-                                  _quickRoleButton(context, 'Siswa', '/dashboard/siswa', theme.colorScheme.primary),
-                                  _quickRoleButton(context, 'OrangTua', '/dashboard/orangtua', theme.colorScheme.tertiary),
-                                ],
-                              ),
+                              ],
+                              
+                              if (kDebugMode) ...[
+                                // Quick testing options (in case Firebase is not connected yet)
+                                const SizedBox(height: 24),
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Akses Cepat Pengujian (Offline/Mock)',
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _quickRoleButton(context, 'Guru', 'guru@sifokus.sch.id', '123456', theme.colorScheme.secondary),
+                                    _quickRoleButton(context, 'Siswa', 'siswa@sifokus.sch.id', '123456', theme.colorScheme.primary),
+                                    _quickRoleButton(context, 'OrangTua', 'ortu@sifokus.sch.id', '123456', theme.colorScheme.tertiary),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -292,7 +385,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _quickRoleButton(BuildContext context, String title, String route, Color color) {
+  Widget _quickRoleButton(BuildContext context, String title, String email, String password, Color color) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -302,7 +395,14 @@ class _LoginPageState extends State<LoginPage> {
             minimumSize: const Size.fromHeight(36),
             padding: EdgeInsets.zero,
           ),
-          onPressed: () => context.go(route),
+          onPressed: () {
+            context.read<AuthBloc>().add(
+                  LoginRequested(
+                    email: email,
+                    password: password,
+                  ),
+                );
+          },
           child: Text(
             title,
             style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),

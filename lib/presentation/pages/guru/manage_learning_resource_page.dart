@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/utils/url_validator.dart';
 import '../../../data/models/learning_resource_model.dart';
 import '../../../domain/repositories/resource_repository.dart';
 import '../../bloc/resource/resource_bloc.dart';
 import '../../bloc/resource/resource_event.dart';
 import '../../bloc/resource/resource_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class ManageLearningResourcePage extends StatelessWidget {
   final String classId;
@@ -140,31 +143,13 @@ class _ManageLearningResourceViewState
                       const SizedBox(height: 24),
 
                       // URL Field
-                      TextFormField(
+                      SharedInput(
                         controller: _urlController,
-                        decoration: InputDecoration(
-                          labelText: 'URL Sumber Belajar',
-                          hintText: 'https://youtube.com/watch?v=...',
-                          prefixIcon: Icon(
-                            _detectedType == 'youtube'
-                                ? Icons.play_circle_fill_rounded
-                                : Icons.link_rounded,
-                            color: _detectedType == 'youtube'
-                                ? Colors.red
-                                : null,
-                          ),
-                          suffixIcon: _urlController.text.trim().isNotEmpty
-                              ? Icon(
-                                  UrlValidator.isValidUrl(_urlController.text.trim())
-                                      ? Icons.check_circle_rounded
-                                      : Icons.error_rounded,
-                                  color: UrlValidator.isValidUrl(
-                                          _urlController.text.trim())
-                                      ? Colors.green
-                                      : Colors.red,
-                                )
-                              : null,
-                        ),
+                        labelText: 'URL Sumber Belajar',
+                        hintText: 'https://youtube.com/watch?v=...',
+                        prefixIcon: _detectedType == 'youtube'
+                            ? Icons.play_circle_fill_rounded
+                            : Icons.link_rounded,
                         keyboardType: TextInputType.url,
                         onChanged: (val) {
                           setSheetState(() {
@@ -185,13 +170,11 @@ class _ManageLearningResourceViewState
                       const SizedBox(height: 16),
 
                       // Title Field
-                      TextFormField(
+                      SharedInput(
                         controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Judul Sumber Belajar',
-                          hintText: 'Misal: Video Penjelasan Persamaan Linear',
-                          prefixIcon: Icon(Icons.title_rounded),
-                        ),
+                        labelText: 'Judul Sumber Belajar',
+                        hintText: 'Misal: Video Penjelasan Persamaan Linear',
+                        prefixIcon: Icons.title_rounded,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Judul tidak boleh kosong';
@@ -211,14 +194,7 @@ class _ManageLearningResourceViewState
                         _buildYoutubeThumbnailPreview(_urlController.text.trim()),
                       const SizedBox(height: 24),
 
-                      // Submit button
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
+                      SharedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             final resource = LearningResourceModel(
@@ -237,8 +213,8 @@ class _ManageLearningResourceViewState
                             Navigator.of(ctx).pop();
                           }
                         },
-                        icon: const Icon(Icons.add_rounded, color: Colors.white),
-                        label: const Text('Simpan Sumber Belajar'),
+                        icon: Icons.add_rounded,
+                        text: 'Simpan Sumber Belajar',
                       ),
                     ],
                   ),
@@ -271,7 +247,7 @@ class _ManageLearningResourceViewState
       default:
         icon = Icons.link_rounded;
         label = 'Referensi Link';
-        chipColor = theme.colorScheme.primary;
+        chipColor = AppColors.primaryLight;
     }
 
     return Row(
@@ -363,19 +339,16 @@ class _ManageLearningResourceViewState
         : HSLColor.fromAHSL(1.0, 165, 0.80, 0.38).toColor();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sumber Belajar Tambahan'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+      backgroundColor: AppColors.backgroundLight,
+      appBar: const SharedAppBar(
+        title: 'Sumber Belajar Tambahan',
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddResourceSheet,
-        backgroundColor: accentColor,
+        backgroundColor: AppColors.primaryLight,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_link_rounded),
-        label: const Text('Tambah Resource'),
+        label: Text('Tambah Resource', style: GoogleFonts.outfit()),
       ),
       body: BlocConsumer<ResourceBloc, ResourceState>(
         listener: (context, state) {
@@ -438,16 +411,17 @@ class _ManageLearningResourceViewState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.library_books_rounded,
-                size: 64,
-                color: accentColor,
+            SharedCard(
+              borderRadius: 32,
+              color: accentColor.withValues(alpha: 0.1),
+              border: Border.all(color: accentColor.withValues(alpha: 0.12), width: 1.5),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Icon(
+                  Icons.library_books_rounded,
+                  size: 64,
+                  color: accentColor,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -469,16 +443,10 @@ class _ManageLearningResourceViewState
               ),
             ),
             const SizedBox(height: 32),
-            ElevatedButton.icon(
+            SharedButton(
               onPressed: _showAddResourceSheet,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('Tambah Sumber Pertama'),
+              text: 'Tambah Sumber Pertama',
+              backgroundColor: accentColor,
             ),
           ],
         ),
@@ -509,12 +477,11 @@ class _ManageLearningResourceViewState
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          Container(
+          SharedCard(
+            borderRadius: 12,
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
+            color: accentColor.withValues(alpha: 0.1),
+            border: Border.all(color: accentColor.withValues(alpha: 0.15)),
             child: Icon(Icons.auto_stories_rounded, color: accentColor, size: 24),
           ),
           const SizedBox(width: 12),
@@ -606,11 +573,9 @@ class _ManageLearningResourceViewState
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Card(
-        elevation: 2,
-        shadowColor: Colors.black.withValues(alpha: 0.06),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        clipBehavior: Clip.antiAlias,
+      child: SharedCard(
+        padding: EdgeInsets.zero,
+        borderRadius: 16,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -692,7 +657,7 @@ class _ManageLearningResourceViewState
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
+                backgroundColor: AppColors.error,
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
@@ -704,7 +669,7 @@ class _ManageLearningResourceViewState
                     );
                 Navigator.of(ctx).pop();
               },
-              child: const Text('Hapus'),
+              child: Text('Hapus', style: GoogleFonts.outfit()),
             ),
           ],
         );

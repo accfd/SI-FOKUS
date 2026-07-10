@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/class/class_bloc.dart';
@@ -8,6 +9,8 @@ import '../../bloc/class/class_event.dart';
 import '../../bloc/class/class_state.dart';
 import '../../../data/models/class_model.dart';
 import '../../bloc/auth/auth_event.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../widgets/shared_ui_kit.dart';
 
 class GuruDashboardPage extends StatefulWidget {
   const GuruDashboardPage({super.key});
@@ -51,17 +54,19 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
         final user = authState.user;
 
         return Scaffold(
-          appBar: AppBar(
+          backgroundColor: AppColors.backgroundLight,
+          appBar: SharedAppBar(
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   'SI-FOKUS Guru',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
                 ),
                 Text(
                   user.name,
-                  style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
+                  style: GoogleFonts.outfit(fontSize: 12, color: Colors.white.withOpacity(0.85)),
                 ),
               ],
             ),
@@ -86,8 +91,8 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _showCreateClassBottomSheet(context, user.uid),
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Buat Kelas Baru'),
-            backgroundColor: theme.colorScheme.primary,
+            label: Text('Buat Kelas Baru', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+            backgroundColor: AppColors.primaryLight,
             foregroundColor: Colors.white,
           ),
           body: BlocConsumer<ClassBloc, ClassState>(
@@ -180,31 +185,16 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
 
   Widget _buildClassCard(BuildContext context, ClassModel classItem, int index) {
     final theme = Theme.of(context);
-    
-    // Choose gradient based on HSL tailored colors
-    final List<Color> gradients = index % 3 == 0
-        ? [const HSLColor.fromAHSL(1.0, 240, 0.8, 0.55).toColor(), const HSLColor.fromAHSL(1.0, 240, 0.8, 0.75).toColor()]
-        : index % 3 == 1
-            ? [const HSLColor.fromAHSL(1.0, 170, 0.8, 0.45).toColor(), const HSLColor.fromAHSL(1.0, 170, 0.8, 0.65).toColor()]
-            : [const HSLColor.fromAHSL(1.0, 40, 0.9, 0.55).toColor(), const HSLColor.fromAHSL(1.0, 40, 0.9, 0.75).toColor()];
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Card(
-      elevation: 4,
-      shadowColor: gradients[0].withValues(alpha: 0.3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      clipBehavior: Clip.antiAlias,
+    return SharedCard(
+      padding: EdgeInsets.zero,
       child: InkWell(
         onTap: () {
           context.push('/dashboard/guru/class/${classItem.classId}');
         },
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: gradients,
-            ),
-          ),
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,15 +202,15 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: AppColors.primaryLight.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   classItem.classCode,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: GoogleFonts.outfit(
+                    color: AppColors.primaryLight,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: 11,
                     letterSpacing: 1.0,
                   ),
                 ),
@@ -230,10 +220,10 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
                 classItem.className,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
+                style: GoogleFonts.outfit(
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                  fontSize: 16,
                   height: 1.2,
                 ),
               ),
@@ -242,20 +232,20 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
                 classItem.subjectName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.85),
+                style: GoogleFonts.outfit(
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                   fontSize: 12,
                 ),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.people_alt_rounded, color: Colors.white, size: 16),
+                  const Icon(Icons.people_alt_rounded, color: AppColors.primaryLight, size: 16),
                   const SizedBox(width: 6),
                   Text(
                     '${classItem.studentUids.length} Siswa',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: GoogleFonts.outfit(
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -377,13 +367,11 @@ class _CreateClassBottomSheetState extends State<_CreateClassBottomSheet> {
             const SizedBox(height: 20),
             
             // Name Field
-            TextFormField(
+            SharedInput(
               controller: _classNameController,
-              decoration: const InputDecoration(
-                labelText: 'Nama Kelas',
-                hintText: 'Misal: Kelas VII-A',
-                prefixIcon: Icon(Icons.class_outlined),
-              ),
+              labelText: 'Nama Kelas',
+              hintText: 'Misal: Kelas VII-A',
+              prefixIcon: Icons.class_outlined,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Nama kelas tidak boleh kosong';
@@ -394,13 +382,11 @@ class _CreateClassBottomSheetState extends State<_CreateClassBottomSheet> {
             const SizedBox(height: 16),
 
             // Subject Field
-            TextFormField(
+            SharedInput(
               controller: _subjectNameController,
-              decoration: const InputDecoration(
-                labelText: 'Mata Pelajaran',
-                hintText: 'Misal: Matematika',
-                prefixIcon: Icon(Icons.book_outlined),
-              ),
+              labelText: 'Mata Pelajaran',
+              hintText: 'Misal: Matematika',
+              prefixIcon: Icons.book_outlined,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Mata pelajaran tidak boleh kosong';
@@ -449,9 +435,9 @@ class _CreateClassBottomSheetState extends State<_CreateClassBottomSheet> {
             ),
             const SizedBox(height: 24),
 
-            ElevatedButton(
+            SharedButton(
+              text: 'Buat Kelas Sekarang',
               onPressed: _onSubmit,
-              child: const Text('Buat Kelas Sekarang'),
             ),
           ],
         ),

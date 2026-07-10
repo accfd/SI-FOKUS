@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 import '../../../data/models/class_model.dart';
 import '../../../data/models/user_model.dart';
+import '../../../data/models/material_model.dart';
 import '../../../domain/repositories/class_repository.dart';
+import '../../../domain/repositories/material_repository.dart';
 import '../../bloc/class/class_bloc.dart';
 import '../../bloc/class/class_event.dart';
 import '../../bloc/class/class_state.dart';
@@ -82,11 +87,12 @@ class ClassDetailGuruPage extends StatelessWidget {
           final classItem = classSnapshot.data!;
 
           return Scaffold(
-            appBar: AppBar(
-              title: Text(classItem.className),
+            backgroundColor: AppColors.backgroundLight,
+            appBar: SharedAppBar(
+              title: classItem.className,
               actions: [
                 IconButton(
-                  icon: Icon(Icons.delete_outline_rounded, color: theme.colorScheme.error),
+                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
                   onPressed: () => _onDeleteClass(context, classItem.className, classItem.teacherId),
                 ),
               ],
@@ -97,36 +103,135 @@ class ClassDetailGuruPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Class Header Info Card
-                  _buildHeaderCard(context, classItem),
+                   _buildHeaderCard(context, classItem),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.secondary,
-                      foregroundColor: Colors.white,
-                    ),
+                  SharedButton(
                     onPressed: () => context.push('/dashboard/guru/class/${classItem.classId}/upload'),
-                    icon: const Icon(Icons.menu_book_rounded),
-                    label: const Text('Kelola & Unggah Materi Pintar'),
+                    icon: Icons.menu_book_rounded,
+                    text: 'Kelola & Unggah Materi Pintar',
+                    backgroundColor: AppColors.primaryLight,
                   ),
                   const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: Colors.white,
-                    ),
+                  SharedButton(
                     onPressed: () => context.push('/dashboard/guru/class/${classItem.classId}/competency'),
-                    icon: const Icon(Icons.analytics_rounded),
-                    label: const Text('Lihat Dasbor Kompetensi Kelas (AI)'),
+                    icon: Icons.analytics_rounded,
+                    text: 'Lihat Dasbor Kompetensi Kelas (AI)',
+                    backgroundColor: AppColors.secondaryLight,
                   ),
                   const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.tertiary,
-                      foregroundColor: Colors.white,
-                    ),
+                  SharedButton(
                     onPressed: () => context.push('/dashboard/guru/class/${classItem.classId}/analytics'),
-                    icon: const Icon(Icons.show_chart_rounded),
-                    label: const Text('Lihat Analisis Tren Belajar Kelas'),
+                    icon: Icons.show_chart_rounded,
+                    text: 'Lihat Analisis Tren Belajar Kelas',
+                    backgroundColor: AppColors.accentLight,
+                    foregroundColor: AppColors.textPrimaryLight,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Materials Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Materi Pintar Kelas',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimaryLight),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.teal),
+                        tooltip: 'Unggah Materi Baru',
+                        onPressed: () => context.push('/dashboard/guru/class/${classItem.classId}/upload'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  FutureBuilder<List<MaterialModel>>(
+                    future: context.read<MaterialRepository>().fetchClassMaterials(classItem.classId),
+                    builder: (context, materialsSnapshot) {
+                      if (materialsSnapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: Text('Gagal memuat materi: ${materialsSnapshot.error}'),
+                        );
+                      }
+                      if (materialsSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20.0),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      final materials = materialsSnapshot.data ?? [];
+                      if (materials.isEmpty) {
+                         return const SharedCard(
+                          borderRadius: 14,
+                          child: Padding(
+                            padding: EdgeInsets.all(24.0),
+                            child: Center(
+                              child: Text(
+                                'Belum ada materi pintar yang diunggah.\nKetuk tombol tambah (+) atau tombol Kelola di atas untuk mengunggah materi pertama.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.grey, fontSize: 13, height: 1.4),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: materials.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final material = materials[index];
+                          return SharedCard(
+                            padding: EdgeInsets.zero,
+                            borderRadius: 14,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              leading: CircleAvatar(
+                                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                child: Icon(Icons.picture_as_pdf_rounded, color: theme.colorScheme.primary),
+                              ),
+                              title: Text(
+                                material.title,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              subtitle: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: material.isPublished
+                                          ? Colors.green.withValues(alpha: 0.1)
+                                          : Colors.grey.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      material.isPublished ? 'Dipublikasikan' : 'Draft',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: material.isPublished ? Colors.green : Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    material.fileType.toUpperCase(),
+                                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                              trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                              onTap: () {
+                                context.push('/dashboard/guru/class/${classItem.classId}/upload?materialId=${material.materialId}');
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   
@@ -136,7 +241,7 @@ class ClassDetailGuruPage extends StatelessWidget {
                     children: [
                       Text(
                         'Siswa Terdaftar',
-                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimaryLight),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -175,20 +280,20 @@ class ClassDetailGuruPage extends StatelessWidget {
                       final students = studentsSnapshot.data ?? [];
 
                       if (students.isEmpty) {
-                        return Card(
-                          color: theme.colorScheme.surface.withValues(alpha: 0.5),
+                        return const SharedCard(
+                          borderRadius: 14,
                           child: Padding(
-                            padding: const EdgeInsets.all(32.0),
+                            padding: EdgeInsets.all(24.0),
                             child: Column(
                               children: [
-                                Icon(Icons.people_outline_rounded, size: 48, color: Colors.grey.shade400),
-                                const SizedBox(height: 12),
-                                const Text(
+                                Icon(Icons.people_outline_rounded, size: 48, color: Colors.grey),
+                                SizedBox(height: 12),
+                                Text(
                                   'Belum Ada Siswa',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                const SizedBox(height: 6),
-                                const Text(
+                                SizedBox(height: 6),
+                                Text(
                                   'Bagikan kode akses di atas kepada siswa Anda untuk bergabung ke kelas ini.',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -223,38 +328,34 @@ class ClassDetailGuruPage extends StatelessWidget {
   Widget _buildHeaderCard(BuildContext context, ClassModel classItem) {
     final theme = Theme.of(context);
 
-    return Card(
-      elevation: 0,
-      color: theme.colorScheme.primary.withValues(alpha: 0.06),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: theme.colorScheme.primary.withValues(alpha: 0.12),
-          width: 1.5,
-        ),
+    return SharedCard(
+      borderRadius: 20,
+      color: AppColors.primaryLight.withValues(alpha: 0.06),
+      border: Border.all(
+        color: AppColors.primaryLight.withValues(alpha: 0.12),
+        width: 1.5,
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              classItem.subjectName.toUpperCase(),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-                fontSize: 11,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            classItem.subjectName.toUpperCase(),
+            style: GoogleFonts.outfit(
+              color: AppColors.primaryLight,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              fontSize: 11,
             ),
-            const SizedBox(height: 4),
-            Text(
-              classItem.className,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            classItem.className,
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+              color: AppColors.textPrimaryLight,
             ),
+          ),
             const SizedBox(height: 16),
             const Divider(height: 1),
             const SizedBox(height: 16),
@@ -312,28 +413,20 @@ class ClassDetailGuruPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.qr_code_2_rounded, size: 36, color: Colors.indigo),
+                  child: const Icon(Icons.qr_code_2_rounded, size: 36, color: AppColors.primaryLight),
                 ),
               ],
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildStudentTile(BuildContext context, UserModel student) {
     final theme = Theme.of(context);
-
-    return Card(
-      elevation: 0,
-      color: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-        ),
-      ),
+    return SharedCard(
+      padding: EdgeInsets.zero,
+      borderRadius: 14,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(

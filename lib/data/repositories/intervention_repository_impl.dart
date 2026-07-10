@@ -38,29 +38,9 @@ class InterventionRepositoryImpl implements InterventionRepository {
         interventionId: _uuid.v4(),
         classId: classId,
         materialId: materialId,
-        summaryAlert: '72% siswa belum memahami konsep dan perhitungan dasar sub-materi ini.',
-        recommendations: [
-          'Ulangi penjelasan sub-materi utama selama 20 menit pada pertemuan kelas berikutnya.',
-          'Gunakan representasi grafis/media visual untuk menyederhanakan alur rumus yang rumit.',
-          'Berikan kuis latihan mandiri terstruktur sebanyak 5 soal tambahan untuk mengunci pemahaman.',
-        ],
-        individualInterventions: [
-          IndividualInterventionModel(
-            studentId: 'std_rem_1',
-            studentName: 'Aditya Pratama',
-            message: 'Harap membaca kembali bagian sub-topik aljabar dan ulangi kuis evaluasi.',
-          ),
-          IndividualInterventionModel(
-            studentId: 'std_rem_2',
-            studentName: 'Budi Santoso',
-            message: 'Fokuskan latihan Anda pada pengerjaan perkalian matriks transpose.',
-          ),
-          IndividualInterventionModel(
-            studentId: 'std_rem_3',
-            studentName: 'Citra Lestari',
-            message: 'Ulas kembali lembar jawaban kuis utama bersama guru pendamping.',
-          ),
-        ],
+        summaryAlert: 'Belum ada data aktivitas siswa untuk materi ini.',
+        recommendations: const [],
+        individualInterventions: const [],
       );
 
       await MockDb.save('interventions', intervention.interventionId, intervention.toJson());
@@ -82,29 +62,9 @@ class InterventionRepositoryImpl implements InterventionRepository {
       interventionId: _uuid.v4(),
       classId: classId,
       materialId: materialId,
-      summaryAlert: '72% siswa belum memahami konsep dan perhitungan dasar sub-materi ini.',
-      recommendations: [
-        'Ulangi penjelasan sub-materi utama selama 20 menit pada pertemuan kelas berikutnya.',
-        'Gunakan representasi grafis/media visual untuk menyederhanakan alur rumus yang rumit.',
-        'Berikan kuis latihan mandiri terstruktur sebanyak 5 soal tambahan untuk mengunci pemahaman.',
-      ],
-      individualInterventions: [
-        IndividualInterventionModel(
-          studentId: 'std_rem_1',
-          studentName: 'Aditya Pratama',
-          message: 'Harap membaca kembali bagian sub-topik aljabar dan ulangi kuis evaluasi.',
-        ),
-        IndividualInterventionModel(
-          studentId: 'std_rem_2',
-          studentName: 'Budi Santoso',
-          message: 'Fokuskan latihan Anda pada pengerjaan perkalian matriks transpose.',
-        ),
-        IndividualInterventionModel(
-          studentId: 'std_rem_3',
-          studentName: 'Citra Lestari',
-          message: 'Ulas kembali lembar jawaban kuis utama bersama guru pendamping.',
-        ),
-      ],
+      summaryAlert: 'Belum ada data aktivitas siswa untuk materi ini.',
+      recommendations: const [],
+      individualInterventions: const [],
     );
 
     await _firestore.collection('interventions').doc(intervention.interventionId).set(intervention.toJson());

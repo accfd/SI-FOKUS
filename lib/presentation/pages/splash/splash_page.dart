@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/utils/guru_seeder.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -184,11 +185,87 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                       fontSize: 12,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white.withValues(alpha: 0.8),
+                          backgroundColor: Colors.white.withValues(alpha: 0.1),
+                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                        icon: const Icon(Icons.download_rounded, size: 14),
+                        label: const Text('Seed Data'),
+                        onPressed: () async {
+                          try {
+                            // Impor secara lokal untuk menghindari circular reference
+                            await _seedData(context);
+                          } catch (e) {
+                            _showSnackbar(context, 'Gagal seed data: $e');
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red.shade200,
+                          backgroundColor: Colors.black.withValues(alpha: 0.2),
+                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                        icon: const Icon(Icons.delete_sweep_rounded, size: 14),
+                        label: const Text('Clear Data'),
+                        onPressed: () async {
+                          try {
+                            await _clearData(context);
+                          } catch (e) {
+                            _showSnackbar(context, 'Gagal hapus data: $e');
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _seedData(BuildContext context) async {
+    try {
+      await GuruSeeder.seedAll();
+      if (context.mounted) {
+        _showSnackbar(context, 'Data dummy sukses disuntikkan ke database!');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showSnackbar(context, 'Gagal seed data: $e');
+      }
+    }
+  }
+
+  Future<void> _clearData(BuildContext context) async {
+    try {
+      await GuruSeeder.clearAll();
+      if (context.mounted) {
+        _showSnackbar(context, 'Seluruh data dummy sukses dibersihkan.');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showSnackbar(context, 'Gagal hapus data: $e');
+      }
+    }
+  }
+
+  void _showSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
       ),
     );
   }

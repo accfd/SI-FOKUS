@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/intervention_model.dart';
 import '../../bloc/intervention/intervention_bloc.dart';
 import '../../bloc/intervention/intervention_event.dart';
 import '../../bloc/intervention/intervention_state.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../presentation/widgets/shared_ui_kit.dart';
 
 class LearningInterventionPage extends StatefulWidget {
   final String classId;
@@ -51,8 +54,9 @@ class _LearningInterventionPageState extends State<LearningInterventionPage> {
     final warningText = const HSLColor.fromAHSL(1.0, 45, 0.90, 0.25).toColor();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Intervensi Pembelajaran'),
+      backgroundColor: AppColors.backgroundLight,
+      appBar: const SharedAppBar(
+        title: 'AI Intervensi Pembelajaran',
       ),
       body: BlocConsumer<InterventionBloc, InterventionState>(
         listener: (context, state) {
@@ -82,19 +86,58 @@ class _LearningInterventionPageState extends State<LearningInterventionPage> {
           if (state is InterventionLoaded) {
             final intervention = state.intervention;
 
+            if (intervention.individualInterventions.isEmpty &&
+                (intervention.summaryAlert.contains('Belum ada data') || intervention.summaryAlert.isEmpty)) {
+              return Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 60),
+                      Icon(Icons.bar_chart_rounded, size: 64, color: Colors.grey.shade400),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Belum Ada Data Aktivitas',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Modul ini baru saja diunggah. Rekomendasi intervensi pembelajaran kognitif AI akan dihasilkan secara otomatis setelah siswa kelas mulai membaca materi atau mengerjakan kuis.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Kembali ke Rincian Kelas'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
             return SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // 1. Early Warning Box (Peringatan Dini)
-                  Container(
+                  SharedCard(
                     padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: warningBg,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: warningBorder, width: 1.5),
-                    ),
+                    borderRadius: 16,
+                    color: warningBg,
+                    border: Border.all(color: warningBorder, width: 1.5),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -130,12 +173,8 @@ class _LearningInterventionPageState extends State<LearningInterventionPage> {
                   const SizedBox(height: 24),
 
                   // 2. AI Recommendations Card
-                  Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-                    ),
+                  SharedCard(
+                    borderRadius: 20,
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
@@ -143,11 +182,11 @@ class _LearningInterventionPageState extends State<LearningInterventionPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.auto_awesome_rounded, color: theme.colorScheme.primary),
+                              const Icon(Icons.auto_awesome_rounded, color: AppColors.primaryLight),
                               const SizedBox(width: 8),
-                              const Text(
+                              Text(
                                 'Rekomendasi Kelas AI',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimaryLight),
                               ),
                             ],
                           ),
@@ -185,7 +224,7 @@ class _LearningInterventionPageState extends State<LearningInterventionPage> {
                   // 3. Individual Remedial List
                   Text(
                     'Siswa Butuh Remedial',
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimaryLight),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -195,7 +234,8 @@ class _LearningInterventionPageState extends State<LearningInterventionPage> {
                   const SizedBox(height: 16),
 
                   if (intervention.individualInterventions.isEmpty) ...[
-                    const Card(
+                    const SharedCard(
+                      borderRadius: 16,
                       child: Padding(
                         padding: EdgeInsets.all(32.0),
                         child: Center(
@@ -213,13 +253,10 @@ class _LearningInterventionPageState extends State<LearningInterventionPage> {
                       itemCount: intervention.individualInterventions.length,
                       itemBuilder: (context, index) {
                         final indiv = intervention.individualInterventions[index];
-                        return Card(
+                        return SharedCard(
                           margin: const EdgeInsets.only(bottom: 12),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(color: Colors.grey.shade200),
-                          ),
+                          padding: EdgeInsets.zero,
+                          borderRadius: 16,
                           child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             leading: CircleAvatar(

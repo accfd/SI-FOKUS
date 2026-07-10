@@ -61,60 +61,7 @@ class ClassRepositoryImpl implements ClassRepository {
 
     if (isMockMode) {
       await MockDb.save('classes', classId, classModel.toJson());
-      
-      // Tambahkan siswa tiruan/mock ke kelas secara default jika berjalan lokal agar guru langsung melihat siswa terdaftar!
-      // Ini penting agar F-05, F-06, F-07 dapat langsung berjalan dan diuji.
-      final mockStudents = [
-        UserModel(
-          uid: 'std_rem_1',
-          name: 'Aditya Pratama',
-          email: 'aditya@siswa.com',
-          role: 'siswa',
-          parentAccessCode: 'ADTYA1',
-          createdAt: DateTime.now(),
-        ),
-        UserModel(
-          uid: 'std_rem_2',
-          name: 'Budi Santoso',
-          email: 'budi@siswa.com',
-          role: 'siswa',
-          parentAccessCode: 'BUDI02',
-          createdAt: DateTime.now(),
-        ),
-        UserModel(
-          uid: 'std_rem_3',
-          name: 'Citra Lestari',
-          email: 'citra@siswa.com',
-          role: 'siswa',
-          parentAccessCode: 'CITRA3',
-          createdAt: DateTime.now(),
-        ),
-        UserModel(
-          uid: 'std_rem_4',
-          name: 'Dewi Handayani',
-          email: 'dewi@siswa.com',
-          role: 'siswa',
-          parentAccessCode: 'DEWI04',
-          createdAt: DateTime.now(),
-        ),
-      ];
-
-      for (final student in mockStudents) {
-        await MockDb.save('users', student.uid, student.toJson());
-      }
-
-      // Tambahkan UID siswa mock ke kelas
-      final updatedClassModel = ClassModel(
-        classId: classId,
-        className: className.trim(),
-        classCode: classCode,
-        subjectName: subjectName.trim(),
-        teacherId: teacherId,
-        studentUids: mockStudents.map((e) => e.uid).toList(),
-      );
-
-      await MockDb.save('classes', classId, updatedClassModel.toJson());
-      return updatedClassModel;
+      return classModel;
     }
 
     await _firestore!.collection('classes').doc(classId).set(classModel.toJson());
