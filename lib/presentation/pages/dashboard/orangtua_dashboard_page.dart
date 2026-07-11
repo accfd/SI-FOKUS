@@ -11,6 +11,7 @@ import '../../bloc/parent_monitoring/parent_monitoring_event.dart';
 import '../../bloc/parent_monitoring/parent_monitoring_state.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/shared_ui_kit.dart';
+import '../profile/manage_profile_page.dart';
 
 class OrangTuaDashboardPage extends StatelessWidget {
   const OrangTuaDashboardPage({super.key});
@@ -50,17 +51,37 @@ class _OrangTuaDashboardView extends StatelessWidget {
     return Scaffold(
       backgroundColor: _surface,
       appBar: SharedAppBar(
-        title: 'SI-FOKUS Orang Tua',
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Keluar',
-            onPressed: () {
-              context.read<AuthBloc>().add(const LogoutRequested());
-              context.go('/login');
-            },
-          ),
-        ],
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Dashboard Orang Tua',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+            ),
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, authState) {
+                if (authState is Authenticated) {
+                  return Text(
+                    authState.user.name,
+                    style: GoogleFonts.outfit(fontSize: 11, color: Colors.white.withOpacity(0.85), fontWeight: FontWeight.w500),
+                  );
+                }
+                return const SizedBox();
+              },
+            ),
+          ],
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.account_circle_rounded, size: 28),
+          tooltip: 'Kelola Profil',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ManageProfilePage()),
+            );
+          },
+        ),
       ),
       body: BlocBuilder<ParentMonitoringBloc, ParentMonitoringState>(
         builder: (context, state) {

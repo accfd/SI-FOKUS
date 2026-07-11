@@ -186,7 +186,7 @@ class _EditAssessmentPageState extends State<EditAssessmentPage> {
                   const SizedBox(height: 16),
                   Text(
                     state is AssessmentLoading 
-                        ? 'Gemini AI sedang menyusun soal asesmen...' 
+                        ? 'Sistem AI sedang menyusun soal asesmen...' 
                         : 'Memuat data materi...',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
@@ -232,7 +232,7 @@ class _EditAssessmentPageState extends State<EditAssessmentPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Belum ada soal asesmen untuk materi "${_material!.title}". Klik tombol di bawah untuk meminta Gemini AI menganalisis isi modul dan menghasilkan kuis pilihan ganda secara otomatis.',
+              'Belum ada soal asesmen untuk materi "${_material!.title}". Klik tombol di bawah untuk meminta AI menganalisis isi modul dan menghasilkan kuis pilihan ganda secara otomatis.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 13, color: Colors.grey, height: 1.4),
             ),
@@ -379,7 +379,7 @@ class _EditAssessmentPageState extends State<EditAssessmentPage> {
               children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 16),
-                Text('Gemini AI sedang menyusun soal baru...', style: TextStyle(fontWeight: FontWeight.bold)),
+                 Text('Sistem AI sedang menyusun soal baru...', style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -416,7 +416,7 @@ class _EditAssessmentPageState extends State<EditAssessmentPage> {
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Soal berhasil diperbarui secara langsung dari dokumen via Gemini AI!')),
+            const SnackBar(content: Text('Soal berhasil diperbarui secara langsung dari dokumen via AI!')),
           );
         }
       } else {

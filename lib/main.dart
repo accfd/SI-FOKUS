@@ -32,6 +32,8 @@ import 'presentation/bloc/competency/competency_bloc.dart';
 import 'presentation/bloc/intervention/intervention_bloc.dart';
 import 'presentation/bloc/analytics/analytics_bloc.dart';
 import 'presentation/bloc/talent/talent_bloc.dart';
+import 'data/repositories/seeder.dart';
+import 'data/repositories/mock_db.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +55,17 @@ void main() async {
     }
   } catch (e) {
     debugPrint('Firebase initialization warning: $e');
+  }
+
+  // Force database auto-seeding once on start to update mock data and names
+  try {
+    final seeded = await MockDb.getString('database_seeded_v7');
+    if (seeded != 'true') {
+      await DatabaseSeeder.seedAll();
+      await MockDb.setString('database_seeded_v7', 'true');
+    }
+  } catch (e) {
+    debugPrint('Database auto-seed error: $e');
   }
 
   runApp(const MyApp());

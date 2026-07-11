@@ -9,15 +9,21 @@ import '../../bloc/talent/talent_event.dart';
 import '../../bloc/talent/talent_state.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../presentation/widgets/shared_ui_kit.dart';
+import '../../../domain/repositories/class_repository.dart';
 
 class TalentRecommendationPage extends StatefulWidget {
-  const TalentRecommendationPage({super.key});
+  final String? classId;
+
+  const TalentRecommendationPage({super.key, this.classId});
 
   @override
   State<TalentRecommendationPage> createState() => _TalentRecommendationPageState();
 }
 
 class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
+  List<String>? _classStudentUids;
+  bool _isLoadingClass = false;
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +33,26 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
       teacherId = authState.user.uid;
     }
     context.read<TalentBloc>().add(FetchTalentRecommendations(teacherId));
+    _loadClassStudents();
+  }
+
+  Future<void> _loadClassStudents() async {
+    if (widget.classId != null) {
+      setState(() {
+        _isLoadingClass = true;
+      });
+      try {
+        final classDetail = await context.read<ClassRepository>().streamClassDetail(widget.classId!).first;
+        setState(() {
+          _classStudentUids = classDetail.studentUids;
+          _isLoadingClass = false;
+        });
+      } catch (e) {
+        setState(() {
+          _isLoadingClass = false;
+        });
+      }
+    }
   }
 
   @override
@@ -41,11 +67,11 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: const SharedAppBar(
-        title: 'Rekomendasi Bakat AI',
+        title: 'Rekomendasi Bakat Siswa',
       ),
       body: BlocBuilder<TalentBloc, TalentState>(
         builder: (context, state) {
-          if (state is TalentLoading) {
+          if (state is TalentLoading || _isLoadingClass) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -71,11 +97,19 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
           }
 
           if (state is TalentLoaded) {
-            final recs = state.recommendations;
+            var recs = state.recommendations;
+
+            // Filter recommendations by class student UIDs if classId is specified
+            if (widget.classId != null && _classStudentUids != null) {
+              recs = recs.where((rec) => _classStudentUids!.contains(rec.studentId)).toList();
+            }
 
             if (recs.isEmpty) {
               return const Center(
-                child: Text('Tidak ada siswa yang direkomendasikan saat ini.'),
+                child: Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Text('Tidak ada rekomendasi bakat siswa untuk kelas ini saat ini.'),
+                ),
               );
             }
 
@@ -136,6 +170,11 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                       return SharedCard(
                         margin: const EdgeInsets.only(bottom: 20),
                         borderRadius: 24,
+                        color: Colors.white,
+                        border: Border.all(
+                          color: AppColors.primaryLight.withValues(alpha: 0.18),
+                          width: 1.5,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Column(
@@ -153,6 +192,7 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                                           style: GoogleFonts.outfit(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
+                                            color: AppColors.textPrimaryLight,
                                           ),
                                         ),
                                         const SizedBox(height: 6),
@@ -212,16 +252,16 @@ class _TalentRecommendationPageState extends State<TalentRecommendationPage> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: Colors.grey,
+                                  color: AppColors.textSecondaryLight,
                                 ),
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 rec.reasoning,
-                                style: const TextStyle(
+                                style: GoogleFonts.outfit(
                                   fontSize: 13,
                                   height: 1.5,
-                                  color: Colors.black87,
+                                  color: AppColors.textPrimaryLight.withValues(alpha: 0.85),
                                 ),
                               ),
                             ],

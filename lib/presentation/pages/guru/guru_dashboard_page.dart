@@ -11,6 +11,7 @@ import '../../../data/models/class_model.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/shared_ui_kit.dart';
+import '../profile/manage_profile_page.dart';
 
 class GuruDashboardPage extends StatefulWidget {
   const GuruDashboardPage({super.key});
@@ -61,32 +62,25 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'SI-FOKUS Guru',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+                  'Dashboard Guru',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                 ),
                 Text(
                   user.name,
-                  style: GoogleFonts.outfit(fontSize: 12, color: Colors.white.withOpacity(0.85)),
+                  style: GoogleFonts.outfit(fontSize: 11, color: Colors.white.withOpacity(0.85), fontWeight: FontWeight.w500),
                 ),
               ],
             ),
-            leading: const Icon(Icons.psychology_rounded, size: 28),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.emoji_events_rounded),
-                tooltip: 'Analisis Rekomendasi Bakat AI (F-08)',
-                onPressed: () {
-                  context.push('/dashboard/guru/talent');
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout_rounded),
-                onPressed: () {
-                  context.read<AuthBloc>().add(const LogoutRequested());
-                  context.go('/login');
-                },
-              ),
-            ],
+            leading: IconButton(
+              icon: const Icon(Icons.account_circle_rounded, size: 28),
+              tooltip: 'Kelola Profil',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ManageProfilePage()),
+                );
+              },
+            ),
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _showCreateClassBottomSheet(context, user.uid),
@@ -184,11 +178,13 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
   }
 
   Widget _buildClassCard(BuildContext context, ClassModel classItem, int index) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return SharedCard(
       padding: EdgeInsets.zero,
+      color: Colors.white,
+      border: Border.all(
+        color: AppColors.primaryLight.withValues(alpha: 0.15),
+        width: 1.5,
+      ),
       child: InkWell(
         onTap: () {
           context.push('/dashboard/guru/class/${classItem.classId}');
@@ -221,7 +217,7 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.outfit(
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: AppColors.textPrimaryLight,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                   height: 1.2,
@@ -233,7 +229,7 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.outfit(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: AppColors.textSecondaryLight,
                   fontSize: 12,
                 ),
               ),
@@ -245,7 +241,7 @@ class _GuruDashboardPageState extends State<GuruDashboardPage> {
                   Text(
                     '${classItem.studentUids.length} Siswa',
                     style: GoogleFonts.outfit(
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: AppColors.textPrimaryLight,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),

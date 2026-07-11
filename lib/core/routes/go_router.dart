@@ -129,6 +129,14 @@ class AppRouter {
                 },
               ),
               GoRoute(
+                path: 'talent',
+                name: 'class_talent_recommendation',
+                builder: (context, state) {
+                  final classId = state.pathParameters['classId'] ?? '';
+                  return TalentRecommendationPage(classId: classId);
+                },
+              ),
+              GoRoute(
                 path: 'material/:materialId/resources',
                 name: 'manage_learning_resources',
                 builder: (context, state) {

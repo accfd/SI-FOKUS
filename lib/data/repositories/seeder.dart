@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'mock_db.dart';
 
@@ -15,24 +16,28 @@ bool get isMockMode {
 class DatabaseSeeder {
   static Future<void> seedAll() async {
     if (isMockMode) {
+      // Clear preferences to guarantee that all old records are completely destroyed
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
       // 1. Teacher
       final teacherUid = 'mock_teacher_123';
       await MockDb.save('users', teacherUid, {
         'uid': teacherUid,
-        'name': 'Drs. Fuadi Hidayat, M.Pd.',
+        'name': 'Fuadi Dhiyaulhaq, S.Si',
         'email': 'guru@sifokus.sch.id',
         'role': 'guru',
         'createdAt': DateTime.now().toIso8601String(),
       });
       
-      // 2. Student (Muhammad Rizky)
+      // 2. Student (Ferdian Rahman)
       final studentUid = 'mock_student_123';
       await MockDb.save('users', studentUid, {
         'uid': studentUid,
-        'name': 'Muhammad Rizky',
+        'name': 'Ferdian Rahman',
         'email': 'siswa@sifokus.sch.id',
         'role': 'siswa',
-        'parentAccessCode': 'RIZKY9',
+        'parentAccessCode': 'FERDIAN9',
         'xp': 450,
         'level': 3,
         'unlockedBadges': ['Kuis Master', 'Pembaca Cepat', 'Peringkat 1'],
@@ -43,7 +48,7 @@ class DatabaseSeeder {
       final parentUid = 'mock_parent_123';
       await MockDb.save('users', parentUid, {
         'uid': parentUid,
-        'name': 'Heri Prasetyo (Orang Tua Rizky)',
+        'name': 'Heri Prasetyo (Orang Tua Ferdian)',
         'email': 'ortu@sifokus.sch.id',
         'role': 'orang_tua',
         'linkedStudentUid': studentUid,
@@ -84,15 +89,86 @@ class DatabaseSeeder {
         });
       }
 
-      // 5. Class
-      await MockDb.save('classes', 'class_x_biologi', {
-        'classId': 'class_x_biologi',
-        'className': 'Kelas X Biologi 1',
-        'classCode': 'BIO10REG',
-        'subjectName': 'Biologi',
-        'teacherId': teacherUid,
-        'studentUids': allStudentUids,
-      });
+      // 5. Classes
+      final classesToSeed = [
+        {
+          'classId': 'class_x_biologi', // Keep original class ID to preserve material and analytics links
+          'className': 'Kelas X-1',
+          'classCode': 'BIO10REG',
+          'subjectName': 'Biologi',
+          'teacherId': teacherUid,
+          'studentUids': allStudentUids,
+        },
+        {
+          'classId': 'class_x_biologi_2',
+          'className': 'Kelas X-2',
+          'classCode': 'BIO10RG2',
+          'subjectName': 'Biologi',
+          'teacherId': teacherUid,
+          'studentUids': allStudentUids,
+        },
+        {
+          'classId': 'class_x_biologi_3',
+          'className': 'Kelas X-3',
+          'classCode': 'BIO10RG3',
+          'subjectName': 'Biologi',
+          'teacherId': teacherUid,
+          'studentUids': allStudentUids,
+        },
+        {
+          'classId': 'class_x_biologi_4',
+          'className': 'Kelas X-4',
+          'classCode': 'BIO10RG4',
+          'subjectName': 'Biologi',
+          'teacherId': teacherUid,
+          'studentUids': allStudentUids,
+        },
+        {
+          'classId': 'class_x_biologi_5',
+          'className': 'Kelas X-5',
+          'classCode': 'BIO10RG5',
+          'subjectName': 'Biologi',
+          'teacherId': teacherUid,
+          'studentUids': allStudentUids,
+        },
+        {
+          'classId': 'class_x_biologi_6',
+          'className': 'Kelas X-6',
+          'classCode': 'BIO10RG6',
+          'subjectName': 'Biologi',
+          'teacherId': teacherUid,
+          'studentUids': allStudentUids,
+        },
+        // Other classes for student dashboard:
+        {
+          'classId': 'class_x_kimia',
+          'className': 'Kelas X-1',
+          'classCode': 'KIM10REG',
+          'subjectName': 'Kimia',
+          'teacherId': 'other_teacher_1',
+          'studentUids': [studentUid],
+        },
+        {
+          'classId': 'class_x_matematika',
+          'className': 'Kelas X-1',
+          'classCode': 'MAT10REG',
+          'subjectName': 'Matematika',
+          'teacherId': 'other_teacher_2',
+          'studentUids': [studentUid],
+        },
+        {
+          'classId': 'class_x_fisika',
+          'className': 'Kelas X-1',
+          'classCode': 'FIS10REG',
+          'subjectName': 'Fisika',
+          'teacherId': 'other_teacher_3',
+          'studentUids': [studentUid],
+        },
+      ];
+
+      for (final c in classesToSeed) {
+        await MockDb.save('classes', c['classId'] as String, c);
+      }
 
       // 6. 6 Materials
       final kdTitles = [
@@ -228,10 +304,10 @@ class DatabaseSeeder {
         'recommendationId': 'rec_rizky',
         'teacherId': teacherUid,
         'studentId': studentUid,
-        'studentName': 'Muhammad Rizky',
-        'recommendedField': 'informatika',
+        'studentName': 'Ferdian Rahman',
+        'recommendedField': 'sains / bioteknologi',
         'confidenceScore': 0.85,
-        'reasoning': 'Rizky menunjukkan logika berpikir komputasional yang runtut saat menganalisis alur dikotomis kunci determinasi makhluk hidup di KD 3.3.'
+        'reasoning': 'Ferdian menunjukkan pemahaman kritis dan logika analisis yang sangat kuat saat memetakan replikasi materi genetik virus serta struktur sel fungi.'
       });
 
       // Analytics
@@ -280,7 +356,7 @@ class DatabaseSeeder {
         'studentSummaries': [
           {
             'studentId': studentUid,
-            'studentName': 'Muhammad Rizky',
+            'studentName': 'Ferdian Rahman',
             'avgQuizScore': 88.5,
             'completedModulesCount': 6
           },
@@ -375,7 +451,7 @@ class DatabaseSeeder {
     // Guru Profile
     await firestore.collection('users').doc(teacherUid).set({
       'uid': teacherUid,
-      'name': 'Drs. Fuadi Hidayat, M.Pd.',
+      'name': 'Fuadi Dhiyaulhaq, S.Si',
       'email': 'guru@sifokus.sch.id',
       'role': 'guru',
       'createdAt': FieldValue.serverTimestamp(),
@@ -384,10 +460,10 @@ class DatabaseSeeder {
     // Primary Student Profile (linked to 'siswa@sifokus.sch.id')
     await firestore.collection('users').doc(studentUid).set({
       'uid': studentUid,
-      'name': 'Muhammad Rizky',
+      'name': 'Ferdian Rahman',
       'email': 'siswa@sifokus.sch.id',
       'role': 'siswa',
-      'parentAccessCode': 'RIZKY9',
+      'parentAccessCode': 'FERDIAN9',
       'xp': 450,
       'level': 3,
       'unlockedBadges': ['Kuis Master', 'Pembaca Cepat', 'Peringkat 1'],
@@ -397,7 +473,7 @@ class DatabaseSeeder {
     // Parent Profile (linked to 'ortu@sifokus.sch.id' and linked to studentUid)
     await firestore.collection('users').doc(parentUid).set({
       'uid': parentUid,
-      'name': 'Heri Prasetyo (Orang Tua Rizky)',
+      'name': 'Heri Prasetyo (Orang Tua Ferdian)',
       'email': 'ortu@sifokus.sch.id',
       'role': 'orang_tua',
       'linkedStudentUid': studentUid,
@@ -439,15 +515,86 @@ class DatabaseSeeder {
       });
     }
 
-    // 4. Create Class Document "class_x_biologi"
-    await firestore.collection('classes').doc('class_x_biologi').set({
-      'classId': 'class_x_biologi',
-      'className': 'Kelas X Biologi 1',
-      'classCode': 'BIO10REG',
-      'subjectName': 'Biologi',
-      'teacherId': teacherUid,
-      'studentUids': allStudentUids,
-    });
+    // 4. Create Class Documents
+    final classesToSeed = [
+      {
+        'classId': 'class_x_biologi', // Keep original class ID to preserve material and analytics links
+        'className': 'Kelas X-1',
+        'classCode': 'BIO10REG',
+        'subjectName': 'Biologi',
+        'teacherId': teacherUid,
+        'studentUids': allStudentUids,
+      },
+      {
+        'classId': 'class_x_biologi_2',
+        'className': 'Kelas X-2',
+        'classCode': 'BIO10RG2',
+        'subjectName': 'Biologi',
+        'teacherId': teacherUid,
+        'studentUids': allStudentUids,
+      },
+      {
+        'classId': 'class_x_biologi_3',
+        'className': 'Kelas X-3',
+        'classCode': 'BIO10RG3',
+        'subjectName': 'Biologi',
+        'teacherId': teacherUid,
+        'studentUids': allStudentUids,
+      },
+      {
+        'classId': 'class_x_biologi_4',
+        'className': 'Kelas X-4',
+        'classCode': 'BIO10RG4',
+        'subjectName': 'Biologi',
+        'teacherId': teacherUid,
+        'studentUids': allStudentUids,
+      },
+      {
+        'classId': 'class_x_biologi_5',
+        'className': 'Kelas X-5',
+        'classCode': 'BIO10RG5',
+        'subjectName': 'Biologi',
+        'teacherId': teacherUid,
+        'studentUids': allStudentUids,
+      },
+      {
+        'classId': 'class_x_biologi_6',
+        'className': 'Kelas X-6',
+        'classCode': 'BIO10RG6',
+        'subjectName': 'Biologi',
+        'teacherId': teacherUid,
+        'studentUids': allStudentUids,
+      },
+      // Other classes for student dashboard:
+      {
+        'classId': 'class_x_kimia',
+        'className': 'Kelas X-1',
+        'classCode': 'KIM10REG',
+        'subjectName': 'Kimia',
+        'teacherId': 'other_teacher_1',
+        'studentUids': [studentUid],
+      },
+      {
+        'classId': 'class_x_matematika',
+        'className': 'Kelas X-1',
+        'classCode': 'MAT10REG',
+        'subjectName': 'Matematika',
+        'teacherId': 'other_teacher_2',
+        'studentUids': [studentUid],
+      },
+      {
+        'classId': 'class_x_fisika',
+        'className': 'Kelas X-1',
+        'classCode': 'FIS10REG',
+        'subjectName': 'Fisika',
+        'teacherId': 'other_teacher_3',
+        'studentUids': [studentUid],
+      },
+    ];
+
+    for (final c in classesToSeed) {
+      await firestore.collection('classes').doc(c['classId'] as String).set(c);
+    }
 
     // 5. Create 6 Materials (KD 3.1 s.d. KD 3.6)
     final kdTitles = [
@@ -586,10 +733,10 @@ class DatabaseSeeder {
       'recommendationId': 'rec_rizky',
       'teacherId': teacherUid,
       'studentId': studentUid,
-      'studentName': 'Muhammad Rizky',
-      'recommendedField': 'informatika',
+      'studentName': 'Ferdian Rahman',
+      'recommendedField': 'sains / bioteknologi',
       'confidenceScore': 0.85,
-      'reasoning': 'Rizky menunjukkan logika berpikir komputasional yang runtut saat menganalisis alur dikotomis kunci determinasi makhluk hidup di KD 3.3.'
+      'reasoning': 'Ferdian menunjukkan pemahaman kritis dan logika analisis yang sangat kuat saat memetakan replikasi materi genetik virus serta struktur sel fungi.'
     });
 
     // 9. Seed Class Analytics
@@ -638,7 +785,7 @@ class DatabaseSeeder {
       'studentSummaries': [
         {
           'studentId': studentUid,
-          'studentName': 'Muhammad Rizky',
+          'studentName': 'Ferdian Rahman',
           'avgQuizScore': 88.5,
           'completedModulesCount': 6
         },

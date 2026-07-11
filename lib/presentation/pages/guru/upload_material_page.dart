@@ -346,14 +346,21 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
                         children: [
                           Text(
                             hasSummary ? 'Analisis Dokumen Selesai' : 'Sedang Memproses Dokumen',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: AppColors.textPrimaryLight,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             hasSummary
-                                ? 'Gemini AI telah berhasil menganalisis dan meringkas dokumen Anda.'
-                                : 'Gemini AI sedang membaca dan menyusun ringkasan serta Quick Check.',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                ? 'Sistem AI telah berhasil menganalisis dan meringkas dokumen Anda.'
+                                : 'Sistem AI sedang membaca dan menyusun ringkasan serta Quick Check.',
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              color: AppColors.textSecondaryLight,
+                            ),
                           ),
                         ],
                       ),
@@ -367,12 +374,19 @@ class _UploadMaterialPageState extends State<UploadMaterialPage> {
             // Document Details
             Text(
               material.title,
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: AppColors.textPrimaryLight,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               'Tipe Dokumen: ${material.fileType.toUpperCase()}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                color: AppColors.textSecondaryLight,
+              ),
             ),
             const SizedBox(height: 24),
 

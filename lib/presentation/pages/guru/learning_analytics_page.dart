@@ -106,6 +106,8 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
   Widget _buildTimeRangeFilter(ThemeData theme) {
     return SharedCard(
       borderRadius: 12,
+      color: Colors.white,
+      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
       padding: const EdgeInsets.all(8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -149,6 +151,8 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
   Widget _buildQuizTrendLineChart(ThemeData theme, List<QuizTrendPoint> trends) {
     return SharedCard(
       borderRadius: 20,
+      color: Colors.white,
+      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -163,86 +167,100 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
             ],
           ),
           const SizedBox(height: 8),
-            const Text(
-              'Menyajikan grafik perkembangan nilai kuis rata-rata seluruh siswa kelas.',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 32),
+          Text(
+            'Menyajikan grafik perkembangan nilai kuis rata-rata seluruh siswa kelas.',
+            style: GoogleFonts.outfit(color: AppColors.textSecondaryLight, fontSize: 12),
+          ),
+          const SizedBox(height: 32),
 
-            SizedBox(
-              height: 220,
-              child: trends.isEmpty
-                  ? const Center(child: Text('Data tidak cukup.'))
-                  : LineChart(
-                      LineChartData(
-                        gridData: const FlGridData(show: false),
-                        borderData: FlBorderData(show: false),
-                        titlesData: FlTitlesData(
-                          show: true,
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 30,
-                              getTitlesWidget: (value, meta) {
-                                final idx = value.toInt();
-                                if (idx >= 0 && idx < trends.length) {
-                                  return SideTitleWidget(
-                                    axisSide: meta.axisSide,
-                                    child: Text(
-                                      trends[idx].quizName,
-                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                                    ),
-                                  );
-                                }
-                                return const SizedBox();
-                              },
-                            ),
-                          ),
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 32,
-                              getTitlesWidget: (value, meta) {
-                                return Text(
-                                  '${value.toInt()}',
-                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
-                                );
-                              },
-                            ),
-                          ),
-                          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        ),
-                        lineTouchData: LineTouchData(enabled: true),
-                        minY: 50,
-                        maxY: 100,
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: List.generate(trends.length, (idx) {
-                              return FlSpot(idx.toDouble(), trends[idx].averageScore);
-                            }),
-                            isCurved: true,
-                            color: AppColors.primaryLight,
-                            barWidth: 4,
-                            isStrokeCapRound: true,
-                            dotData: const FlDotData(show: true),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: AppColors.primaryLight.withValues(alpha: 0.1),
-                            ),
-                          ),
-                        ],
-                      ),
+          SizedBox(
+            height: 220,
+            child: trends.isEmpty
+                ? Center(
+                    child: Text(
+                      'Data tidak cukup.',
+                      style: GoogleFonts.outfit(color: AppColors.textSecondaryLight),
                     ),
-            ),
-          ],
-        ),
-      );
+                  )
+                : LineChart(
+                    LineChartData(
+                      gridData: const FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            interval: 1.0,
+                            getTitlesWidget: (value, meta) {
+                              if (value % 1 != 0) return const SizedBox();
+                              final idx = value.toInt();
+                              if (idx >= 0 && idx < trends.length) {
+                                return SideTitleWidget(
+                                  axisSide: meta.axisSide,
+                                  space: 6,
+                                  child: Text(
+                                    trends[idx].quizName.replaceAll('Kuis ', ''),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimaryLight,
+                                    ),
+                                  ),
+                                );
+                              }
+                              return const SizedBox();
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 32,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                '${value.toInt()}',
+                                style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textSecondaryLight),
+                              );
+                            },
+                          ),
+                        ),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      lineTouchData: LineTouchData(enabled: true),
+                      minY: 50,
+                      maxY: 100,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: List.generate(trends.length, (idx) {
+                            return FlSpot(idx.toDouble(), trends[idx].averageScore);
+                          }),
+                          isCurved: true,
+                          color: AppColors.primaryLight,
+                          barWidth: 4,
+                          isStrokeCapRound: true,
+                          dotData: const FlDotData(show: true),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: AppColors.primaryLight.withValues(alpha: 0.1),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCorrelationSection(ThemeData theme, List<ModuleReadingStat> stats) {
     return SharedCard(
       borderRadius: 20,
+      color: Colors.white,
+      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -256,82 +274,100 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
               ),
             ],
           ),
-            const SizedBox(height: 8),
-            const Text(
-              'Perbandingan rata-rata menit belajar siswa membaca materi dengan skor kuis yang diperoleh.',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 24),
+          const SizedBox(height: 8),
+          Text(
+            'Perbandingan rata-rata menit belajar siswa membaca materi dengan skor kuis yang diperoleh.',
+            style: GoogleFonts.outfit(color: AppColors.textSecondaryLight, fontSize: 12),
+          ),
+          const SizedBox(height: 24),
 
-            Column(
-              children: stats.map((stat) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        stat.moduleTitle,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          Column(
+            children: stats.map((stat) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      stat.moduleTitle,
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.textPrimaryLight,
                       ),
-                      const SizedBox(height: 10),
-                      
-                      Row(
-                        children: [
-                          const SizedBox(
-                            width: 100,
-                            child: Text('Durasi Baca', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    ),
+                    const SizedBox(height: 10),
+                    
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: Text(
+                            'Durasi Baca',
+                            style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textSecondaryLight),
                           ),
-                          Expanded(
-                            child: LinearProgressIndicator(
-                              value: stat.avgReadingMinutes / 60.0,
-                              minHeight: 8,
-                              borderRadius: BorderRadius.circular(4),
-                              color: AppColors.primaryLight,
-                              backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
-                            ),
+                        ),
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value: stat.avgReadingMinutes / 60.0,
+                            minHeight: 8,
+                            borderRadius: BorderRadius.circular(4),
+                            color: AppColors.primaryLight,
+                            backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            '${stat.avgReadingMinutes.toStringAsFixed(1)} mnt',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${stat.avgReadingMinutes.toStringAsFixed(1)} mnt',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimaryLight,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
 
-                      Row(
-                        children: [
-                          const SizedBox(
-                            width: 100,
-                            child: Text('Rata Nilai Kuis', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: Text(
+                            'Rata Nilai Kuis',
+                            style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textSecondaryLight),
                           ),
-                          Expanded(
-                            child: LinearProgressIndicator(
-                              value: stat.avgQuizScore / 100.0,
-                              minHeight: 8,
-                              borderRadius: BorderRadius.circular(4),
-                              color: AppColors.primaryLight,
-                              backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
-                            ),
+                        ),
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value: stat.avgQuizScore / 100.0,
+                            minHeight: 8,
+                            borderRadius: BorderRadius.circular(4),
+                            color: AppColors.primaryLight,
+                            backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            stat.avgQuizScore.toStringAsFixed(1),
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          stat.avgQuizScore.toStringAsFixed(1),
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimaryLight,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Divider(),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      );
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Divider(),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildStudentListSection(ThemeData theme, List<StudentAnalyticsSummary> students) {
@@ -356,11 +392,18 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
         const SizedBox(height: 16),
 
         if (students.isEmpty) ...[
-          const SharedCard(
+          SharedCard(
             borderRadius: 16,
+            color: Colors.white,
+            border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
             child: Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Center(child: Text('Tidak ada siswa yang cocok.')),
+              padding: const EdgeInsets.all(32.0),
+              child: Center(
+                child: Text(
+                  'Tidak ada siswa yang cocok.',
+                  style: GoogleFonts.outfit(color: AppColors.textSecondaryLight),
+                ),
+              ),
             ),
           )
         ] else ...[
@@ -374,6 +417,8 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: EdgeInsets.zero,
                 borderRadius: 16,
+                color: Colors.white,
+                border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   leading: CircleAvatar(
@@ -382,11 +427,15 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
                   ),
                   title: Text(
                     student.studentName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.textPrimaryLight,
+                    ),
                   ),
                   subtitle: Text(
                     'Modul selesai: ${student.completedModulesCount}',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textSecondaryLight),
                   ),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -394,7 +443,7 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
                     children: [
                       Text(
                         student.avgQuizScore.toStringAsFixed(1),
-                        style: TextStyle(
+                        style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: student.avgQuizScore >= 75
@@ -402,9 +451,9 @@ class _LearningAnalyticsPageState extends State<LearningAnalyticsPage> {
                               : AppColors.accentLight,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Rerata Kuis',
-                        style: TextStyle(fontSize: 9, color: Colors.grey),
+                        style: GoogleFonts.outfit(fontSize: 9, color: AppColors.textSecondaryLight),
                       ),
                     ],
                   ),

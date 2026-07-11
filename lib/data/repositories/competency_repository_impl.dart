@@ -15,22 +15,22 @@ class CompetencyRepositoryImpl implements CompetencyRepository {
     
     final topics = [
       MistakeTopicModel(
-        topic: 'Sifat Asosiatif & Komutatif Aljabar',
+        topic: 'Struktur & Siklus Hidup Virus',
         errorRate: 42.0 + (hash % 18), // 42.0% - 60.0%
       ),
       MistakeTopicModel(
-        topic: 'Determinan & Transpose Matriks',
+        topic: 'Pengelompokan Fungi & Peran Jamur',
         errorRate: 31.0 + (hash % 14), // 31.0% - 45.0%
       ),
       MistakeTopicModel(
-        topic: 'Persamaan Kuadrat Sempurna',
+        topic: 'Keanekaragaman Hayati Tingkat Gen & Jenis',
         errorRate: 20.0 + (hash % 10), // 20.0% - 30.0%
       ),
     ];
 
     final mastery = {
       'Pemahaman Konsep': 0.76 + ((hash % 6) / 40.0), // 0.76 - 0.91
-      'Penerapan Rumus': 0.68 + ((hash % 8) / 45.0),
+      'Penerapan Teori': 0.68 + ((hash % 8) / 45.0),
       'Analisis Masalah': 0.54 + ((hash % 11) / 50.0),
       'Evaluasi Langkah': 0.70 + ((hash % 5) / 35.0),
       'Metakognisi Siswa': 0.61 + ((hash % 9) / 40.0),

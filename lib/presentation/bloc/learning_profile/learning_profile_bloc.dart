@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../data/models/digital_learning_profile_model.dart';
@@ -7,6 +8,14 @@ import 'learning_profile_state.dart';
 
 class LearningProfileBloc extends Bloc<LearningProfileEvent, LearningProfileState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  bool get _isMockMode {
+    try {
+      return Firebase.app().options.apiKey == "AIzaSyDummyKeyForLocalWebTestingOnly";
+    } catch (_) {
+      return true;
+    }
+  }
 
   LearningProfileBloc() : super(ProfileInitial()) {
     on<LoadDigitalLearningProfile>(_onLoadDigitalLearningProfile);
@@ -17,6 +26,14 @@ class LearningProfileBloc extends Bloc<LearningProfileEvent, LearningProfileStat
     Emitter<LearningProfileState> emit,
   ) async {
     emit(ProfileLoading());
+    
+    if (_isMockMode) {
+      // Instantly load mock profile in local/offline test mode to avoid infinite Firestore wait times
+      final mockProfile = _getMockProfile(event.studentId);
+      emit(ProfileLoaded(mockProfile));
+      return;
+    }
+
     try {
       final snapshot = await _firestore
           .collection('student_profiles')

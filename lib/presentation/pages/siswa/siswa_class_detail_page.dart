@@ -13,8 +13,10 @@ import '../../../data/repositories/mock_db.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../bloc/quick_check/quick_check_bloc.dart';
+import '../../bloc/gamification/gamification_bloc.dart';
 import 'pdf_viewer_page.dart';
 import 'quick_check_page.dart';
+import 'leaderboard_page.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../presentation/widgets/shared_ui_kit.dart';
 
@@ -174,6 +176,24 @@ class SiswaClassDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 16),
+                SharedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider(
+                          create: (context) => GamificationBloc(),
+                          child: LeaderboardPage(classId: classItem.classId),
+                        ),
+                      ),
+                    );
+                  },
+                  icon: Icons.leaderboard_rounded,
+                  text: 'Lihat Leaderboard Kelas',
+                  backgroundColor: AppColors.accentLight,
+                  foregroundColor: AppColors.textPrimaryLight,
                 ),
                 const SizedBox(height: 28),
 

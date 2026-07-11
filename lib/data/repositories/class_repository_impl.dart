@@ -83,14 +83,47 @@ class ClassRepositoryImpl implements ClassRepository {
       if (studentUids.isEmpty) {
         return Stream.value([]);
       }
-      // Pemantauan berkala local mock database untuk kelancaran UI
-      return Stream.periodic(const Duration(seconds: 2)).asyncMap((_) async {
-        final allUsers = await MockDb.getAll('users');
-        return allUsers
-            .where((u) => studentUids.contains(u['uid']))
-            .map((u) => UserModel.fromJson(u))
-            .toList();
+      
+      final controller = StreamController<List<UserModel>>();
+      
+      // Fetch and emit immediately to prevent UI spinner hang
+      Future.microtask(() async {
+        try {
+          final allUsers = await MockDb.getAll('users');
+          final enrolled = allUsers
+              .where((u) => studentUids.contains(u['uid']))
+              .map((u) => UserModel.fromJson(u))
+              .toList();
+          if (!controller.isClosed) {
+            controller.add(enrolled);
+          }
+        } catch (e) {
+          if (!controller.isClosed) controller.addError(e);
+        }
       });
+      
+      // Periodic updates every 2 seconds
+      final timer = Timer.periodic(const Duration(seconds: 2), (_) async {
+        try {
+          final allUsers = await MockDb.getAll('users');
+          final enrolled = allUsers
+              .where((u) => studentUids.contains(u['uid']))
+              .map((u) => UserModel.fromJson(u))
+              .toList();
+          if (!controller.isClosed) {
+            controller.add(enrolled);
+          }
+        } catch (e) {
+          if (!controller.isClosed) controller.addError(e);
+        }
+      });
+      
+      controller.onCancel = () {
+        timer.cancel();
+        controller.close();
+      };
+      
+      return controller.stream;
     }
 
     if (studentUids.isEmpty) {
@@ -113,13 +146,16 @@ class ClassRepositoryImpl implements ClassRepository {
   @override
   Stream<ClassModel> streamClassDetail(String classId) {
     if (isMockMode) {
-      return Stream.periodic(const Duration(seconds: 2)).asyncMap((_) async {
-        final classData = await MockDb.get('classes', classId);
-        if (classData == null) {
-          throw Exception('Kelas tidak ditemukan.');
+      return (() async* {
+        while (true) {
+          final classData = await MockDb.get('classes', classId);
+          if (classData == null) {
+            throw Exception('Kelas tidak ditemukan.');
+          }
+          yield ClassModel.fromJson(classData);
+          await Future.delayed(const Duration(seconds: 2));
         }
-        return ClassModel.fromJson(classData);
-      });
+      })();
     }
 
     return _firestore!

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/guru_seeder.dart';
+import '../../../data/repositories/seeder.dart';
+import '../../../data/repositories/mock_db.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -18,8 +20,8 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _controller = AnimationController(
-      vsync: this,
       duration: const Duration(milliseconds: 1500),
+      vsync: this,
     );
 
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
@@ -32,12 +34,22 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
 
     _controller.forward();
 
-    // Navigate to Login after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        context.go('/login');
+    _autoSeedAndNavigate();
+  }
+
+  Future<void> _autoSeedAndNavigate() async {
+    try {
+      final seeded = await MockDb.getString('database_seeded_v7');
+      if (seeded != 'true') {
+        await DatabaseSeeder.seedAll();
+        await MockDb.setString('database_seeded_v7', 'true');
       }
-    });
+    } catch (_) {}
+
+    await Future.delayed(const Duration(seconds: 3));
+    if (mounted) {
+      context.go('/login');
+    }
   }
 
   @override
@@ -184,46 +196,6 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                       letterSpacing: 1.2,
                       fontSize: 12,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white.withValues(alpha: 0.8),
-                          backgroundColor: Colors.white.withValues(alpha: 0.1),
-                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                        icon: const Icon(Icons.download_rounded, size: 14),
-                        label: const Text('Seed Data'),
-                        onPressed: () async {
-                          try {
-                            // Impor secara lokal untuk menghindari circular reference
-                            await _seedData(context);
-                          } catch (e) {
-                            _showSnackbar(context, 'Gagal seed data: $e');
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red.shade200,
-                          backgroundColor: Colors.black.withValues(alpha: 0.2),
-                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                        icon: const Icon(Icons.delete_sweep_rounded, size: 14),
-                        label: const Text('Clear Data'),
-                        onPressed: () async {
-                          try {
-                            await _clearData(context);
-                          } catch (e) {
-                            _showSnackbar(context, 'Gagal hapus data: $e');
-                          }
-                        },
-                      ),
-                    ],
                   ),
                 ],
               ),

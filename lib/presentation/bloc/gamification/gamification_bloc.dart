@@ -1,9 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import '../../../../data/repositories/mock_db.dart';
 import '../../../../data/models/user_model.dart';
 import 'gamification_event.dart';
 import 'gamification_state.dart';
+
+bool get isMockMode {
+  try {
+    return Firebase.app().options.apiKey == "AIzaSyDummyKeyForLocalWebTestingOnly";
+  } catch (_) {
+    return true;
+  }
+}
 
 class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -19,16 +28,27 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
   ) async {
     emit(GamificationLoading());
     try {
-      final snapshot = await _firestore
-          .collection('users')
-          .where('role', isEqualTo: 'siswa')
-          .orderBy('xp', descending: true)
-          .limit(10)
-          .get();
+      List<UserModel> topStudents = [];
+      if (isMockMode) {
+        final allUsers = await MockDb.getAll('users');
+        final students = allUsers
+            .map((json) => UserModel.fromJson(json))
+            .where((u) => u.role == 'siswa')
+            .toList();
+        students.sort((a, b) => b.xp.compareTo(a.xp));
+        topStudents = students.take(15).toList();
+      } else {
+        final snapshot = await _firestore
+            .collection('users')
+            .where('role', isEqualTo: 'siswa')
+            .orderBy('xp', descending: true)
+            .limit(15)
+            .get();
 
-      final List<UserModel> topStudents = snapshot.docs
-          .map((doc) => UserModel.fromJson(doc.data()..['uid'] = doc.id))
-          .toList();
+        topStudents = snapshot.docs
+            .map((doc) => UserModel.fromJson(doc.data()..['uid'] = doc.id))
+            .toList();
+      }
 
       if (topStudents.isEmpty) {
         topStudents.addAll(_getMockLeaderboard());
@@ -36,7 +56,11 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
       
       emit(LeaderboardLoaded(topStudents));
     } catch (e) {
-      emit(LeaderboardLoaded(_getMockLeaderboard()));
+      if (isMockMode) {
+        emit(LeaderboardLoaded([]));
+      } else {
+        emit(LeaderboardLoaded(_getMockLeaderboard()));
+      }
     }
   }
 

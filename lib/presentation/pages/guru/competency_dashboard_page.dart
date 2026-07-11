@@ -113,18 +113,18 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
             child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 28),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Analisis Kognitif AI',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                  style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Gemini AI membaca hasil pengerjaan kuis siswa untuk memetakan kelemahan materi kelas secara presisi.',
-                  style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+                  'Sistem AI membaca hasil pengerjaan kuis siswa untuk memetakan kelemahan materi kelas secara presisi.',
+                  style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.75), fontSize: 12, height: 1.3),
                 ),
               ],
             ),
@@ -168,6 +168,8 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
   Widget _buildClassAverageCard(ThemeData theme, double average) {
     return SharedCard(
       borderRadius: 20,
+      color: Colors.white,
+      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
       child: Container(
         height: 280,
         padding: const EdgeInsets.all(24),
@@ -176,7 +178,11 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
           children: [
             Text(
               'Rata-rata Kuis Kelas',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppColors.textPrimaryLight,
+              ),
             ),
             const SizedBox(height: 24),
             Expanded(
@@ -189,8 +195,8 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
                     child: CircularProgressIndicator(
                       value: average / 100,
                       strokeWidth: 16,
-                      color: theme.colorScheme.primary,
-                      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      color: AppColors.primaryLight,
+                      backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
                     ),
                   ),
                   Column(
@@ -198,14 +204,15 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
                     children: [
                       Text(
                         average.toStringAsFixed(1),
-                        style: theme.textTheme.displayMedium?.copyWith(
+                        style: GoogleFonts.outfit(
                           fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
+                          fontSize: 32,
+                          color: AppColors.primaryLight,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Skor Maks 100',
-                        style: TextStyle(fontSize: 10, color: Colors.grey),
+                        style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textSecondaryLight),
                       ),
                     ],
                   ),
@@ -217,14 +224,14 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: average >= 75
-                    ? theme.colorScheme.secondary.withValues(alpha: 0.1)
+                    ? AppColors.primaryLight.withValues(alpha: 0.1)
                     : Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 average >= 75 ? 'Performa Baik' : 'Butuh Intervensi',
-                style: TextStyle(
-                  color: average >= 75 ? theme.colorScheme.secondary : Colors.orange.shade800,
+                style: GoogleFonts.outfit(
+                  color: average >= 75 ? AppColors.primaryLight : Colors.orange.shade800,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -241,6 +248,8 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
 
     return SharedCard(
       borderRadius: 20,
+      color: Colors.white,
+      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
       child: Container(
         height: 280,
         padding: const EdgeInsets.all(20),
@@ -249,7 +258,11 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
           children: [
             Text(
               'Sebaran Penguasaan Kompetensi',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: AppColors.textPrimaryLight,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -268,7 +281,7 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
                   radarShape: RadarShape.polygon,
                   gridBorderData: BorderSide(color: Colors.grey.shade300, width: 1),
                   tickBorderData: BorderSide(color: Colors.grey.shade300, width: 0.5),
-                  ticksTextStyle: const TextStyle(fontSize: 7, color: Colors.grey),
+                  ticksTextStyle: TextStyle(fontSize: 7, color: AppColors.textSecondaryLight),
                   tickCount: 4,
                   titlePositionPercentageOffset: 0.15,
                   getTitle: (index, angle) {
@@ -292,6 +305,8 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
   Widget _buildMistakeTopicsCard(ThemeData theme, List<MistakeTopicModel> mistakeTopics) {
     return SharedCard(
       borderRadius: 20,
+      color: Colors.white,
+      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -306,9 +321,9 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Menyajikan tingkat kesalahan rata-rata siswa dalam menjawab soal per sub-materi.',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              style: GoogleFonts.outfit(color: AppColors.textSecondaryLight, fontSize: 12),
             ),
             const SizedBox(height: 32),
 
@@ -333,7 +348,11 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
                               axisSide: meta.axisSide,
                               child: Text(
                                 'Topik ${idx + 1}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  color: AppColors.textPrimaryLight,
+                                ),
                               ),
                             );
                           }
@@ -348,7 +367,7 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
                         getTitlesWidget: (double value, TitleMeta meta) {
                           return Text(
                             '${value.toInt()}%',
-                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                            style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textSecondaryLight),
                           );
                         },
                       ),
@@ -396,24 +415,32 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
+                          color: AppColors.primaryLight.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           'Topik ${idx + 1}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                            color: AppColors.primaryLight,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           item.topic,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimaryLight,
+                          ),
                         ),
                       ),
                       Text(
                         '${item.errorRate.toStringAsFixed(1)}% Error',
-                        style: TextStyle(
+                        style: GoogleFonts.outfit(
                           color: theme.colorScheme.error,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
@@ -434,8 +461,8 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
 
     return SharedCard(
       borderRadius: 20,
-      color: AppColors.primaryLight.withValues(alpha: 0.05),
-      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15)),
+      color: Colors.white,
+      border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -456,7 +483,11 @@ class _CompetencyDashboardPageState extends State<CompetencyDashboardPage> {
             const SizedBox(height: 12),
             Text(
               'Berdasarkan tingginya persentase kesalahan siswa, disarankan bagi Anda untuk melakukan pembelajaran remedial atau menjelaskan kembali sub-topik "$highestTopic" menggunakan metode visual/grafik bantuan.',
-              style: const TextStyle(fontSize: 13, height: 1.5),
+              style: GoogleFonts.outfit(
+                fontSize: 13,
+                height: 1.5,
+                color: AppColors.textPrimaryLight.withValues(alpha: 0.85),
+              ),
             ),
           ],
         ),

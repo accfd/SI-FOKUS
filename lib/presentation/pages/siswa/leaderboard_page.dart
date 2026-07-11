@@ -9,18 +9,44 @@ import '../../bloc/gamification/gamification_state.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../presentation/widgets/shared_ui_kit.dart';
 
+import '../../../domain/repositories/class_repository.dart';
+
 class LeaderboardPage extends StatefulWidget {
-  const LeaderboardPage({Key? key}) : super(key: key);
+  final String? classId;
+  const LeaderboardPage({Key? key, this.classId}) : super(key: key);
 
   @override
   State<LeaderboardPage> createState() => _LeaderboardPageState();
 }
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
+  List<String>? _classStudentUids;
+  bool _isLoadingClass = false;
+
   @override
   void initState() {
     super.initState();
     context.read<GamificationBloc>().add(const LoadLeaderboard());
+    _loadClassStudents();
+  }
+
+  Future<void> _loadClassStudents() async {
+    if (widget.classId != null) {
+      setState(() {
+        _isLoadingClass = true;
+      });
+      try {
+        final classDetail = await context.read<ClassRepository>().streamClassDetail(widget.classId!).first;
+        setState(() {
+          _classStudentUids = classDetail.studentUids;
+          _isLoadingClass = false;
+        });
+      } catch (e) {
+        setState(() {
+          _isLoadingClass = false;
+        });
+      }
+    }
   }
 
   @override
@@ -32,7 +58,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       ),
       body: BlocBuilder<GamificationBloc, GamificationState>(
         builder: (context, state) {
-          if (state is GamificationLoading || state is GamificationInitial) {
+          if (state is GamificationLoading || state is GamificationInitial || _isLoadingClass) {
             return const Center(child: CircularProgressIndicator());
           }
           if (state is GamificationError) {
@@ -44,7 +70,11 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             );
           }
           if (state is LeaderboardLoaded) {
-            return _buildLeaderboardContent(state.topStudents);
+            var users = state.topStudents;
+            if (widget.classId != null && _classStudentUids != null) {
+              users = users.where((u) => _classStudentUids!.contains(u.uid)).toList();
+            }
+            return _buildLeaderboardContent(users);
           }
           return const SizedBox();
         },
@@ -103,6 +133,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: EdgeInsets.zero,
                 borderRadius: 16,
+                color: Colors.white,
+                border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   leading: CircleAvatar(
@@ -120,13 +152,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: Colors.black87,
+                      color: AppColors.textPrimaryLight,
                     ),
                   ),
                   subtitle: Text(
                     'Level ${student.level} • ${student.unlockedBadges.length} Badges',
                     style: GoogleFonts.outfit(
-                      color: Colors.grey.shade600,
+                      color: AppColors.textSecondaryLight,
                       fontSize: 13,
                     ),
                   ),
@@ -147,7 +179,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
-                          color: AppColors.primaryLight.withValues(alpha: 0.7),
+                          color: AppColors.primaryLight.withValues(alpha: 0.8),
                         ),
                       ),
                     ],

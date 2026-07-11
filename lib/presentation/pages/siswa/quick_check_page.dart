@@ -185,6 +185,8 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
               final q = state.questions[index];
               return SharedCard(
                 borderRadius: 16,
+                color: Colors.white,
+                border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.15), width: 1.5),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -193,6 +195,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimaryLight,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -322,22 +325,24 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
                       ] else if (q.type == 'isian_singkat') ...[
                         TextFormField(
                           key: ValueKey('student_is_${q.questionId}'),
-                             decoration: InputDecoration(
-                              hintText: 'Tulis jawaban Anda di sini...',
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: AppColors.primaryLight.withValues(alpha: 0.3)),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.primaryLight),
-                              ),
+                          style: GoogleFonts.outfit(color: AppColors.textPrimaryLight, fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: 'Tulis jawaban Anda di sini...',
+                            hintStyle: GoogleFonts.outfit(color: AppColors.textSecondaryLight.withOpacity(0.5)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: AppColors.primaryLight.withValues(alpha: 0.3)),
                             ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primaryLight),
+                            ),
+                          ),
                           onChanged: (val) {
                             setState(() {
                               _selectedAnswers[q.questionId] = val;
@@ -349,7 +354,10 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
                           return RadioListTile<int>(
                             title: Text(
                               q.options[optIndex],
-                              style: GoogleFonts.outfit(),
+                              style: GoogleFonts.outfit(
+                                color: AppColors.textPrimaryLight,
+                                fontSize: 14,
+                              ),
                             ),
                             value: optIndex,
                             groupValue: _selectedAnswers[q.questionId] is int 

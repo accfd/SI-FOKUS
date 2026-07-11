@@ -167,6 +167,9 @@ class SharedButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
+            side: backgroundColor == Colors.white
+                ? const BorderSide(color: AppColors.primaryLight, width: 1.5)
+                : BorderSide.none,
           ),
         ),
         child: content,
